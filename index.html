@@ -254,28 +254,32 @@ const S = {
 
 // ── Auth ──────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
-  await msalInstance.initialize();
-  // Handle redirect response
   try {
+    if (typeof msal === "undefined") return; // MSAL failed to load — test mode only
+    await msalInstance.initialize();
     const result = await msalInstance.handleRedirectPromise();
     if (result) { await onSignedIn(result); return; }
-  } catch(e) {}
-  // Check for existing session
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
-    try {
-      const result = await msalInstance.acquireTokenSilent({ scopes: SP_SCOPES, account: accounts[0] });
-      await onSignedIn({ account: accounts[0], accessToken: result.accessToken });
-    } catch(e) { /* show sign-in screen */ }
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      try {
+        const r = await msalInstance.acquireTokenSilent({ scopes: SP_SCOPES, account: accounts[0] });
+        await onSignedIn({ account: accounts[0], accessToken: r.accessToken });
+      } catch(e) {}
+    }
+  } catch(e) {
+    console.warn("MSAL init failed:", e.message);
   }
 });
 
 async function signIn() {
+  if (typeof msal === "undefined") {
+    showAuthError("Microsoft sign-in is not available yet. Use test mode below.");
+    return;
+  }
   const btn = document.getElementById("btn-signin");
   btn.disabled = true;
   btn.textContent = "Signing in…";
   try {
-    // Use redirect (works reliably on SharePoint, no popup blockers)
     await msalInstance.loginRedirect({ scopes: SP_SCOPES });
   } catch(e) {
     showAuthError("Sign-in failed. Please try again.");
@@ -618,12 +622,16 @@ function showToast(msg) {
   clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove("show"),1600);
 }
 // ── Dev bypass (remove once Azure redirect URI is fixed) ─────────
-async function devBypass() {
-  S.user  = { name: "Florian Preis", email: "florian@biobridgepartners.com", contributor: "florian" };
-  // For SharePoint calls we need a real token — skip SP and use localStorage fallback
-  S.token = null;
-  document.getElementById("onboard-user-display").textContent = "Florian Preis (test mode)";
-  showScreen("onboarding");
+function devBypass() {
+  try {
+    S.user  = { name: "Florian Preis", email: "florian@biobridgepartners.com", contributor: "florian" };
+    S.token = null;
+    document.getElementById("onboard-user-display").textContent = "Florian Preis (test mode)";
+    showScreen("onboarding");
+  } catch(e) {
+    console.error("devBypass error:", e);
+    alert("Error: " + e.message);
+  }
 }
 
 document.addEventListener("keydown",e=>{
