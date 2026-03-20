@@ -146,11 +146,11 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 .done-sub{color:var(--muted);max-width:300px;line-height:1.7;font-size:.88rem}
 .done-stats{display:flex;gap:0;background:var(--surf);border:1px solid var(--bdr);
   border-radius:14px;overflow:hidden}
-.dstat{display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:16px 20px;border-right:1px solid var(--bdr)}
+.dstat{display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:22px 26px;border-right:1px solid var(--bdr)}
 .dstat:last-child{border-right:none}
-.dstat-n{font-family:'DM Serif Display',serif;font-size:1.75rem;color:var(--txt)}
-.dstat-l{font-size:.65rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.dstat-n{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--txt)}
+.dstat-l{font-size:.66rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 
 /* ── Toast ─────────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
@@ -328,6 +328,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 <!-- ══ DONE ════════════════════════════════════════════════════════ -->
 <div id="s-done" class="screen off">
+  <div style="font-size:2.8rem;margin-bottom:4px">🎉</div>
   <div class="done-ttl">All done</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
   <div class="done-stats">
