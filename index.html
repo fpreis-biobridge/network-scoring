@@ -11,149 +11,152 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0f1117;--surf:#1a1d27;--surf2:#22263a;--bdr:rgba(255,255,255,0.08);
-  --txt:#f0f2f8;--muted:#8b91a8;--acc:#4f7cff;--acc2:#7c5cfc;
-  --up:#22c55e;--rt:#4f7cff;--lt:#f59e0b;--dn:#ef4444;--cw:min(340px,72vw)
+  --bg:#0f1117;--surf:#16181f;--surf2:#1e2029;--bdr:rgba(255,255,255,0.06);
+  --txt:#e8eaf0;--muted:#606472;--soft:#9095a8;
+  --acc:#4f7cff;--acc2:#7c5cfc;
+  --cw:min(340px,72vw)
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 
-/* All screens share this base */
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;
   align-items:center;transition:opacity .3s,transform .3s}
-.screen.off{opacity:0;pointer-events:none;transform:translateY(14px)}
+.screen.off{opacity:0;pointer-events:none;transform:translateY(12px)}
 
-/* ── Shared buttons ─────────────────────────────────────────────── */
+/* ── Buttons ─────────────────────────────────────────────────────── */
 .btn-pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;
-  border:none;border-radius:14px;padding:15px 20px;font-size:1rem;font-weight:600;
+  border:none;border-radius:12px;padding:14px 20px;font-size:.95rem;font-weight:500;
   cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;flex:1}
-.btn-pri:hover{opacity:.88}
+.btn-pri:hover{opacity:.85}
 .btn-sec{background:transparent;color:var(--muted);border:1px solid var(--bdr);
-  border-radius:14px;padding:15px 20px;font-size:.9rem;font-weight:500;width:64px;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s,color .2s;flex-shrink:0}
-.btn-sec:hover{border-color:var(--acc);color:var(--txt)}
-.btn-msft{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;
-  border:none;border-radius:12px;padding:14px 28px;font-size:.95rem;font-weight:500;
-  cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.3);
-  transition:transform .15s,box-shadow .15s}
-.btn-msft:hover{transform:translateY(-2px)}
-.btn-msft:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  border-radius:12px;padding:14px 20px;font-size:.88rem;font-weight:400;width:64px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:color .2s}
+.btn-sec:hover{color:var(--soft)}
 
-.dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--bdr);transition:background .3s}
 .dot.on{background:var(--acc)}
 
-/* ── AUTH ───────────────────────────────────────────────────────── */
+/* ── AUTH ─────────────────────────────────────────────────────────── */
 #s-auth{justify-content:center;gap:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15),transparent 70%),var(--bg)}
-.auth-logo{font-family:'DM Serif Display',serif;font-size:2.1rem;
-  background:linear-gradient(135deg,#fff,#8b91a8);-webkit-background-clip:text;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(79,124,255,.12),transparent 70%),var(--bg)}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#fff 30%,#8b91a8);-webkit-background-clip:text;
   -webkit-text-fill-color:transparent;margin-bottom:6px}
-.auth-sub{color:var(--muted);font-size:.9rem;margin-bottom:40px;text-align:center}
+.auth-sub{color:var(--muted);font-size:.88rem;margin-bottom:40px;text-align:center}
+.btn-msft{display:flex;align-items:center;gap:10px;background:#fff;color:#1a1a1a;
+  border:none;border-radius:10px;padding:12px 24px;font-size:.9rem;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 2px 16px rgba(0,0,0,.25);
+  transition:transform .15s,box-shadow .15s}
+.btn-msft:hover{transform:translateY(-1px);box-shadow:0 4px 24px rgba(0,0,0,.35)}
+.btn-msft:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
-/* ── ONBOARDING ─────────────────────────────────────────────────── */
+/* ── ONBOARDING ───────────────────────────────────────────────────── */
 #s-onboard{justify-content:flex-start;padding:0}
-/* Each step is a full-screen flex column with fixed header/footer and scrollable middle */
 .ob-step{width:100%;max-width:460px;flex:1;display:flex;flex-direction:column;
   min-height:0;padding:0 24px}
 .ob-step.off{display:none}
 .ob-hdr{display:flex;justify-content:space-between;align-items:center;
-  padding:20px 0 24px;flex-shrink:0}
+  padding:20px 0 22px;flex-shrink:0}
 .ob-dots{display:flex;gap:6px}
 .ob-body{flex:1;overflow-y:auto;padding-bottom:8px}
 .ob-nav{display:flex;gap:10px;padding:16px 0 28px;flex-shrink:0}
-.ob-ttl{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:14px}
-.ob-txt{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:14px}
-.sc-card{display:flex;align-items:flex-start;gap:14px;background:var(--surf);
-  border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;margin-bottom:10px}
-.sc-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:1.2rem;flex-shrink:0;margin-top:1px}
-.sc-card h4{font-size:.9rem;font-weight:600;margin-bottom:3px}
-.sc-card p{font-size:.8rem;color:var(--muted);line-height:1.45}
+.ob-ttl{font-family:'DM Serif Display',serif;font-size:1.75rem;line-height:1.2;
+  margin-bottom:14px;color:var(--txt)}
+.ob-txt{color:var(--soft);line-height:1.7;font-size:.9rem;margin-bottom:14px}
 
-/* ── LOADING ─────────────────────────────────────────────────────── */
-#s-load{justify-content:center;gap:14px}
-.spinner{width:36px;height:36px;border-radius:50%;border:3px solid var(--bdr);
+.sc-card{display:flex;align-items:flex-start;gap:12px;
+  border-bottom:1px solid var(--bdr);padding:13px 0}
+.sc-card:last-child{border-bottom:none}
+.sc-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:1rem;flex-shrink:0;margin-top:1px;
+  background:var(--surf2)}
+.sc-card h4{font-size:.88rem;font-weight:500;margin-bottom:2px;color:var(--txt)}
+.sc-card p{font-size:.8rem;color:var(--muted);line-height:1.5}
+
+/* ── LOADING ──────────────────────────────────────────────────────── */
+#s-load{justify-content:center;gap:12px}
+.spinner{width:32px;height:32px;border-radius:50%;border:2px solid var(--bdr);
   border-top-color:var(--acc);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── SCORING ─────────────────────────────────────────────────────── */
+/* ── SCORING ──────────────────────────────────────────────────────── */
 #s-score{justify-content:flex-start;padding:0;align-items:stretch}
 .sc-hdr{width:100%;padding:14px 20px 10px;display:flex;justify-content:space-between;
   align-items:center;border-bottom:1px solid var(--bdr);flex-shrink:0}
-.sc-nm{font-weight:600;font-size:.95rem}
-.sc-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
-.sc-ct{text-align:right;font-size:.82rem;color:var(--muted)}
-.sc-ct strong{color:var(--txt)}
-.prog{width:100%;height:3px;background:var(--bdr);flex-shrink:0}
+.sc-nm{font-weight:500;font-size:.9rem;color:var(--txt)}
+.sc-sub{font-size:.7rem;color:var(--muted);margin-top:1px}
+.sc-ct{text-align:right;font-size:.78rem;color:var(--muted)}
+.sc-ct strong{color:var(--soft)}
+.prog{width:100%;height:2px;background:var(--bdr);flex-shrink:0}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s}
 
-/* Arena: fills remaining space, card centred, hints at edges */
 .arena{flex:1;position:relative;display:flex;align-items:center;
   justify-content:center;overflow:hidden;touch-action:none;
   width:100%;height:calc(100vh - 100px)}
 
-/* Hint labels around card — no buttons, just subtle text+icon */
+/* Hints: very subtle, just text */
 .hint{position:absolute;display:flex;flex-direction:column;align-items:center;
-  gap:3px;pointer-events:none;z-index:2;transition:opacity .15s;opacity:.7}
-.hint.lit{opacity:1}
-.hint-ico{font-size:1.3rem}
-.hint-lbl{font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-#h-up {top:14px;   left:50%;transform:translateX(-50%);color:var(--up)}
-#h-dn {bottom:14px;left:50%;transform:translateX(-50%);color:var(--dn)}
-#h-lt {left:6px;   top:50%;transform:translateY(-50%);color:var(--lt);text-align:center}
-#h-rt {right:6px;  top:50%;transform:translateY(-50%);color:var(--rt);text-align:center}
+  gap:2px;pointer-events:none;z-index:2;opacity:.3;transition:opacity .15s}
+.hint.lit{opacity:.9}
+.hint-ico{font-size:1rem}
+.hint-lbl{font-size:.55rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--soft)}
+#h-up {top:16px;   left:50%;transform:translateX(-50%)}
+#h-dn {bottom:16px;left:50%;transform:translateX(-50%)}
+#h-lt {left:10px;  top:50%;transform:translateY(-50%)}
+#h-rt {right:10px; top:50%;transform:translateY(-50%)}
 
 /* Profile card */
 .pcard{width:var(--cw);background:var(--surf);border:1px solid var(--bdr);
-  border-radius:20px;padding:20px 18px 16px;position:absolute;cursor:grab;
-  box-shadow:0 8px 40px rgba(0,0,0,.45);user-select:none;will-change:transform;
+  border-radius:16px;padding:20px 18px 16px;position:absolute;cursor:grab;
+  box-shadow:0 4px 24px rgba(0,0,0,.35);user-select:none;will-change:transform;
   z-index:1;touch-action:none;-webkit-user-select:none}
 .pcard:active{cursor:grabbing}
-.pbadge{display:inline-flex;align-items:center;gap:6px;
-  background:rgba(79,124,255,.15);border:1px solid rgba(79,124,255,.3);
-  color:var(--acc);border-radius:20px;padding:3px 10px;font-size:.67rem;
-  font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:13px}
-.pbadge.tgt{background:rgba(124,92,252,.15);border-color:rgba(124,92,252,.3);color:var(--acc2)}
-.pavatar{width:48px;height:48px;border-radius:12px;
+
+.pavatar{width:44px;height:44px;border-radius:10px;
   background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;
   align-items:center;justify-content:center;font-family:'DM Serif Display',serif;
-  font-size:1.2rem;color:#fff;flex-shrink:0}
-.pname{font-family:'DM Serif Display',serif;font-size:1.2rem;line-height:1.2;margin-bottom:4px}
-.ppos{font-size:.8rem;color:var(--muted);line-height:1.4;margin-bottom:9px}
+  font-size:1.1rem;color:#fff;flex-shrink:0}
+.pname{font-family:'DM Serif Display',serif;font-size:1.15rem;line-height:1.2;
+  margin-bottom:3px;color:var(--txt)}
+.ppos{font-size:.78rem;color:var(--muted);line-height:1.4;margin-bottom:8px}
 .pcoy{display:inline-flex;align-items:center;gap:5px;background:var(--surf2);
-  border-radius:7px;padding:4px 9px;font-size:.76rem;font-weight:500}
-.pcoy-dot{width:5px;height:5px;border-radius:50%;background:var(--acc)}
+  border-radius:6px;padding:4px 9px;font-size:.75rem;font-weight:400;color:var(--soft)}
+.pcoy-dot{width:4px;height:4px;border-radius:50%;
+  background:linear-gradient(135deg,var(--acc),var(--acc2))}
 .pdiv{height:1px;background:var(--bdr);margin:12px 0}
 .ptags{display:flex;gap:6px;flex-wrap:wrap}
-.ptag{background:var(--surf2);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--muted)}
-.ptag.snr{color:#f59e0b}
-.ptag.tgt{color:var(--acc2)}
-/* Swipe overlays */
-.sov{position:absolute;inset:0;border-radius:20px;opacity:0;
-  pointer-events:none;display:flex;align-items:center;justify-content:center}
-.sov-lbl{font-family:'DM Serif Display',serif;font-size:1.4rem;font-weight:700;
-  padding:8px 16px;border-radius:10px;border:3px solid}
-.sov-lt .sov-lbl{border-color:var(--lt);color:var(--lt);transform:rotate(12deg)}
-.sov-rt .sov-lbl{border-color:var(--rt);color:var(--rt);transform:rotate(-12deg)}
-.sov-up .sov-lbl{border-color:var(--up);color:var(--up)}
-.sov-dn .sov-lbl{border-color:var(--dn);color:var(--dn)}
+.ptag{background:transparent;border:1px solid var(--bdr);border-radius:5px;
+  padding:3px 7px;font-size:.67rem;font-weight:400;color:var(--muted)}
+.ptag.snr{color:var(--soft);border-color:rgba(255,255,255,.1)}
+.ptag.tgt{color:var(--acc);border-color:rgba(79,124,255,.25)}
 
-/* ── DONE ────────────────────────────────────────────────────────── */
-#s-done{justify-content:center;gap:16px;text-align:center;
-  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.1),transparent 70%),var(--bg)}
-.done-ico{font-size:3.8rem}
-.done-ttl{font-family:'DM Serif Display',serif;font-size:2rem}
-.done-sub{color:var(--muted);max-width:300px;line-height:1.65;font-size:.93rem}
-.done-stats{display:flex;gap:22px;background:var(--surf);border:1px solid var(--bdr);
-  border-radius:16px;padding:16px 24px}
-.dstat-n{font-family:'DM Serif Display',serif;font-size:1.9rem;text-align:center}
-.dstat-l{font-size:.7rem;color:var(--muted);text-align:center}
+/* Swipe direction indicator — subtle tint, no stamp */
+.sov{position:absolute;inset:0;border-radius:16px;opacity:0;
+  pointer-events:none;transition:opacity .1s}
+.sov-lt{background:linear-gradient(90deg,rgba(245,158,11,.08),transparent)}
+.sov-rt{background:linear-gradient(270deg,rgba(79,124,255,.08),transparent)}
+.sov-up{background:linear-gradient(180deg,rgba(34,197,94,.08),transparent)}
+.sov-dn{background:linear-gradient(0deg,rgba(239,68,68,.08),transparent)}
 
-/* ── Toast ───────────────────────────────────────────────────────── */
+/* ── DONE ──────────────────────────────────────────────────────────── */
+#s-done{justify-content:center;gap:14px;text-align:center;
+  background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(79,124,255,.08),transparent 70%),var(--bg)}
+.done-ttl{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--txt)}
+.done-sub{color:var(--muted);max-width:300px;line-height:1.7;font-size:.88rem}
+.done-stats{display:flex;gap:0;background:var(--surf);border:1px solid var(--bdr);
+  border-radius:14px;overflow:hidden}
+.dstat{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:16px 20px;border-right:1px solid var(--bdr)}
+.dstat:last-child{border-right:none}
+.dstat-n{font-family:'DM Serif Display',serif;font-size:1.75rem;color:var(--txt)}
+.dstat-l{font-size:.65rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+
+/* ── Toast ─────────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
-  background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;
-  padding:9px 18px;font-size:.85rem;opacity:0;transition:opacity .25s,transform .25s;
-  pointer-events:none;z-index:100;white-space:nowrap}
+  background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;
+  padding:8px 16px;font-size:.8rem;color:var(--soft);opacity:0;
+  transition:opacity .25s,transform .25s;pointer-events:none;z-index:100;white-space:nowrap}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
@@ -199,10 +202,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div class="ob-body">
       <div class="ob-ttl">Rate each<br><em>relationship</em></div>
       <p class="ob-txt">Score each contact based on the strength of your personal relationship using the four levels below.</p>
-      <div class="sc-card"><div class="sc-ico" style="background:rgba(245,158,11,.15)">👋</div><div><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div></div>
-      <div class="sc-card"><div class="sc-ico" style="background:rgba(79,124,255,.15)">🤝</div><div><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div></div>
-      <div class="sc-card"><div class="sc-ico" style="background:rgba(34,197,94,.15)">⭐</div><div><h4>3 · Strong</h4><p>You would pick up the phone for each other. Trust exists, and you could ask for a warm introduction.</p></div></div>
-      <div class="sc-card"><div class="sc-ico" style="background:rgba(239,68,68,.15)">🗑️</div><div><h4>Remove</h4><p>Not relevant or misclassified. Removes the contact from your scoring queue.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="">👋</div><div><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="">🤝</div><div><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="">⭐</div><div><h4>3 · Strong</h4><p>You would pick up the phone for each other. Trust exists, and you could ask for a warm introduction.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="">🗑️</div><div><h4>Remove</h4><p>Not relevant or misclassified. Removes the contact from your scoring queue.</p></div></div>
     </div>
     <div class="ob-nav">
       <button class="btn-sec" onclick="obGo(0)">←</button>
@@ -301,7 +304,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div><div class="sc-nm" id="sc-name">—</div><div class="sc-sub">Scoring your connections</div></div>
     <div style="display:flex;align-items:center;gap:12px">
       <div class="sc-ct"><div><strong id="sc-scored">0</strong> scored</div><div><strong id="sc-left">0</strong> remaining</div></div>
-      <button onclick="undo()" title="Undo last score" style="background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:7px 10px;color:var(--muted);cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bdr)'">↩ Undo</button>
+      <button onclick="undo()" title="Undo last score" style="background:transparent;border:none;padding:6px 4px;color:var(--muted);cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif;letter-spacing:.02em;transition:color .2s" onmouseover="this.style.color='var(--soft)'" onmouseout="this.style.color='var(--muted)'">↩ undo</button>
     </div>
   </div>
   <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
@@ -325,8 +328,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 <!-- ══ DONE ════════════════════════════════════════════════════════ -->
 <div id="s-done" class="screen off">
-  <div class="done-ico">🎉</div>
-  <div class="done-ttl">All done!</div>
+  <div class="done-ttl">All done</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
   <div class="done-stats">
     <div><div class="dstat-n" id="dn-loose">0</div><div class="dstat-l">👋 Loose</div></div>
@@ -574,10 +576,10 @@ function buildCard(c){
       (c.seniority==="Senior"?'<span class="ptag snr">⭐ Senior</span>':'')+
       '<span class="ptag">Connected '+(c["Connected On"]||"—")+'</span>'+
     '</div>'+
-    '<div class="sov sov-lt"><div class="sov-lbl">Loose</div></div>'+
-    '<div class="sov sov-rt"><div class="sov-lbl">Professional</div></div>'+
-    '<div class="sov sov-up"><div class="sov-lbl">Strong ⭐</div></div>'+
-    '<div class="sov sov-dn"><div class="sov-lbl">Remove 🗑️</div></div>';
+    '<div class="sov sov-lt"></div>'+
+    '<div class="sov sov-rt"></div>'+
+    '<div class="sov sov-up"></div>'+
+    '<div class="sov sov-dn"></div>';
   return el;
 }
 
