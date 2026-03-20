@@ -7,177 +7,147 @@
 <script src="app_config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/1.14.0/msal-browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0f1117;--surf:#1a1d27;--surf2:#22263a;--bdr:rgba(255,255,255,0.08);
   --txt:#f0f2f8;--muted:#8b91a8;--acc:#4f7cff;--acc2:#7c5cfc;
-  --up:#22c55e;--rt:#4f7cff;--lt:#f59e0b;--dn:#ef4444;
-  --r:20px;--cw:min(360px,88vw)
+  --up:#22c55e;--rt:#4f7cff;--lt:#f59e0b;--dn:#ef4444;--cw:min(340px,84vw)
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 
-/* ── Shared ─────────────────────────────────────────────────────── */
+/* All screens share this base */
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;
-  align-items:center;padding:0;transition:opacity .3s,transform .3s}
-.screen.off{opacity:0;pointer-events:none;transform:translateY(16px)}
+  align-items:center;transition:opacity .3s,transform .3s}
+.screen.off{opacity:0;pointer-events:none;transform:translateY(14px)}
 
-.btn-pri{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));
-  color:#fff;border:none;border-radius:14px;padding:15px;font-size:1rem;
-  font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;
-  transition:opacity .2s,transform .15s;flex-shrink:0}
-.btn-pri:hover{opacity:.88;transform:translateY(-1px)}
-.btn-pri:disabled{opacity:.35;cursor:not-allowed;transform:none}
+/* ── Shared buttons ─────────────────────────────────────────────── */
+.btn-pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;
+  border:none;border-radius:14px;padding:15px 20px;font-size:1rem;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;flex:1}
+.btn-pri:hover{opacity:.88}
 .btn-sec{background:transparent;color:var(--muted);border:1px solid var(--bdr);
-  border-radius:14px;padding:14px;font-size:.9rem;font-weight:500;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s,color .2s;
-  flex-shrink:0}
+  border-radius:14px;padding:15px 20px;font-size:.9rem;font-weight:500;width:64px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s,color .2s;flex-shrink:0}
 .btn-sec:hover{border-color:var(--acc);color:var(--txt)}
-
-.dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
-.dot.on{background:var(--acc)}
-
-.score-card{display:flex;align-items:flex-start;gap:14px;background:var(--surf);
-  border:1px solid var(--bdr);border-radius:14px;padding:14px 16px}
-.score-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:1.2rem;flex-shrink:0;margin-top:2px}
-.score-card h4{font-size:.9rem;font-weight:600;margin-bottom:3px}
-.score-card p{font-size:.8rem;color:var(--muted);line-height:1.45}
-
-.sname{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:14px}
-.sbody{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:16px}
-
-/* ── Auth ──────────────────────────────────────────────────────── */
-#s-auth{justify-content:center;align-items:center;gap:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15) 0%,transparent 70%),var(--bg)}
-.auth-logo{font-family:'DM Serif Display',serif;font-size:2.4rem;
-  background:linear-gradient(135deg,#fff,#8b91a8);-webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;margin-bottom:8px}
-.auth-sub{color:var(--muted);font-size:.95rem;margin-bottom:44px;text-align:center}
 .btn-msft{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;
   border:none;border-radius:12px;padding:14px 28px;font-size:.95rem;font-weight:500;
   cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.3);
   transition:transform .15s,box-shadow .15s}
-.btn-msft:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.btn-msft:hover{transform:translateY(-2px)}
 .btn-msft:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.msft-icon{width:20px;height:20px;flex-shrink:0}
-.auth-err{color:#ef4444;font-size:.82rem;margin-top:14px;text-align:center;
-  max-width:280px;line-height:1.5;display:none}
 
-/* ── Onboarding ─────────────────────────────────────────────────── */
-#s-onboard{justify-content:flex-start;align-items:center;padding:20px 24px 0}
-.ob-wrap{width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;
-  min-height:0;padding-bottom:24px}
-.ob-header{display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:28px;flex-shrink:0}
-.ob-dots{display:flex;gap:6px}
-.ob-step{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
+.dot.on{background:var(--acc)}
+
+/* ── AUTH ───────────────────────────────────────────────────────── */
+#s-auth{justify-content:center;gap:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15),transparent 70%),var(--bg)}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:2.1rem;
+  background:linear-gradient(135deg,#fff,#8b91a8);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;margin-bottom:6px}
+.auth-sub{color:var(--muted);font-size:.9rem;margin-bottom:40px;text-align:center}
+
+/* ── ONBOARDING ─────────────────────────────────────────────────── */
+#s-onboard{justify-content:flex-start;padding:0}
+/* Each step is a full-screen flex column with fixed header/footer and scrollable middle */
+.ob-step{width:100%;max-width:460px;flex:1;display:flex;flex-direction:column;
+  min-height:0;padding:0 24px}
 .ob-step.off{display:none}
-.ob-content{flex:1}
-.ob-nav{display:flex;gap:10px;padding-top:20px;flex-shrink:0}
+.ob-hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:20px 0 24px;flex-shrink:0}
+.ob-dots{display:flex;gap:6px}
+.ob-body{flex:1;overflow-y:auto;padding-bottom:8px}
+.ob-nav{display:flex;gap:10px;padding:16px 0 28px;flex-shrink:0}
+.ob-ttl{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:14px}
+.ob-txt{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:14px}
+.sc-card{display:flex;align-items:flex-start;gap:14px;background:var(--surf);
+  border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.sc-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.sc-card h4{font-size:.9rem;font-weight:600;margin-bottom:3px}
+.sc-card p{font-size:.8rem;color:var(--muted);line-height:1.45}
 
-/* ── Scoring ────────────────────────────────────────────────────── */
+/* ── LOADING ─────────────────────────────────────────────────────── */
+#s-load{justify-content:center;gap:14px}
+.spinner{width:36px;height:36px;border-radius:50%;border:3px solid var(--bdr);
+  border-top-color:var(--acc);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SCORING ─────────────────────────────────────────────────────── */
 #s-score{justify-content:flex-start;padding:0}
-.sc-header{width:100%;padding:14px 20px 10px;display:flex;justify-content:space-between;
-  align-items:center;border-bottom:1px solid var(--bdr);background:var(--bg);flex-shrink:0}
-.sc-name{font-weight:600;font-size:.95rem}
+.sc-hdr{width:100%;padding:14px 20px 10px;display:flex;justify-content:space-between;
+  align-items:center;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.sc-nm{font-weight:600;font-size:.95rem}
 .sc-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
-.sc-count{font-size:.82rem;color:var(--muted);text-align:right}
-.sc-count strong{color:var(--txt)}
-.prog-wrap{width:100%;height:3px;background:var(--bdr);flex-shrink:0}
+.sc-ct{text-align:right;font-size:.82rem;color:var(--muted)}
+.sc-ct strong{color:var(--txt)}
+.prog{width:100%;height:3px;background:var(--bdr);flex-shrink:0}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s}
 
-/* Arena: card in centre, hint icons at edges */
+/* Arena: fills remaining space, card centred, hints at edges */
 .arena{flex:1;position:relative;display:flex;align-items:center;
   justify-content:center;overflow:hidden;min-height:0}
 
-/* Hint icons always visible around the card */
+/* Hint labels around card — no buttons, just subtle text+icon */
 .hint{position:absolute;display:flex;flex-direction:column;align-items:center;
-  gap:3px;pointer-events:none;z-index:2;opacity:.55;transition:opacity .15s}
+  gap:3px;pointer-events:none;z-index:2;transition:opacity .15s;opacity:.5}
 .hint.lit{opacity:1}
-.hint-ico{font-size:1.4rem}
-.hint-lbl{font-size:.6rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-#h-up  {top:14px; left:50%;transform:translateX(-50%);color:var(--up)}
-#h-dn  {bottom:14px;left:50%;transform:translateX(-50%);color:var(--dn)}
-#h-lt  {left:10px; top:50%;transform:translateY(-50%);color:var(--lt)}
-#h-rt  {right:10px;top:50%;transform:translateY(-50%);color:var(--rt)}
+.hint-ico{font-size:1.3rem}
+.hint-lbl{font-size:.58rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+#h-up {top:16px;   left:50%;transform:translateX(-50%);color:var(--up)}
+#h-dn {bottom:16px;left:50%;transform:translateX(-50%);color:var(--dn)}
+#h-lt {left:10px;  top:50%;transform:translateY(-50%);color:var(--lt)}
+#h-rt {right:10px; top:50%;transform:translateY(-50%);color:var(--rt)}
 
 /* Profile card */
 .pcard{width:var(--cw);background:var(--surf);border:1px solid var(--bdr);
-  border-radius:var(--r);padding:22px 20px 18px;position:absolute;cursor:grab;
+  border-radius:20px;padding:20px 18px 16px;position:absolute;cursor:grab;
   box-shadow:0 8px 40px rgba(0,0,0,.45);user-select:none;will-change:transform;z-index:1}
 .pcard:active{cursor:grabbing}
 .pbadge{display:inline-flex;align-items:center;gap:6px;
   background:rgba(79,124,255,.15);border:1px solid rgba(79,124,255,.3);
-  color:var(--acc);border-radius:20px;padding:3px 10px;font-size:.68rem;
-  font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+  color:var(--acc);border-radius:20px;padding:3px 10px;font-size:.67rem;
+  font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:13px}
 .pbadge.tgt{background:rgba(124,92,252,.15);border-color:rgba(124,92,252,.3);color:var(--acc2)}
-.pavatar{width:52px;height:52px;border-radius:14px;
+.pavatar{width:48px;height:48px;border-radius:12px;
   background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;
   align-items:center;justify-content:center;font-family:'DM Serif Display',serif;
-  font-size:1.3rem;color:#fff;flex-shrink:0}
-.pname{font-family:'DM Serif Display',serif;font-size:1.25rem;line-height:1.2;margin-bottom:5px}
-.ppos{font-size:.82rem;color:var(--muted);line-height:1.4;margin-bottom:10px}
-.pcoy{display:inline-flex;align-items:center;gap:6px;background:var(--surf2);
-  border-radius:8px;padding:5px 10px;font-size:.78rem;font-weight:500}
-.pcoy-dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
-.pdiv{height:1px;background:var(--bdr);margin:14px 0}
-.ptags{display:flex;gap:7px;flex-wrap:wrap}
-.ptag{background:var(--surf2);border-radius:6px;padding:3px 8px;font-size:.7rem;color:var(--muted)}
+  font-size:1.2rem;color:#fff;flex-shrink:0}
+.pname{font-family:'DM Serif Display',serif;font-size:1.2rem;line-height:1.2;margin-bottom:4px}
+.ppos{font-size:.8rem;color:var(--muted);line-height:1.4;margin-bottom:9px}
+.pcoy{display:inline-flex;align-items:center;gap:5px;background:var(--surf2);
+  border-radius:7px;padding:4px 9px;font-size:.76rem;font-weight:500}
+.pcoy-dot{width:5px;height:5px;border-radius:50%;background:var(--acc)}
+.pdiv{height:1px;background:var(--bdr);margin:12px 0}
+.ptags{display:flex;gap:6px;flex-wrap:wrap}
+.ptag{background:var(--surf2);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--muted)}
 .ptag.snr{color:#f59e0b}
-
 /* Swipe overlays */
-.sov{position:absolute;inset:0;border-radius:var(--r);opacity:0;
+.sov{position:absolute;inset:0;border-radius:20px;opacity:0;
   pointer-events:none;display:flex;align-items:center;justify-content:center}
-.sov-lbl{font-family:'DM Serif Display',serif;font-size:1.5rem;font-weight:700;
-  padding:9px 18px;border-radius:12px;border:3px solid}
-.sov-lt .sov-lbl{border-color:var(--lt);color:var(--lt);transform:rotate(15deg)}
-.sov-rt .sov-lbl{border-color:var(--rt);color:var(--rt);transform:rotate(-15deg)}
+.sov-lbl{font-family:'DM Serif Display',serif;font-size:1.4rem;font-weight:700;
+  padding:8px 16px;border-radius:10px;border:3px solid}
+.sov-lt .sov-lbl{border-color:var(--lt);color:var(--lt);transform:rotate(12deg)}
+.sov-rt .sov-lbl{border-color:var(--rt);color:var(--rt);transform:rotate(-12deg)}
 .sov-up .sov-lbl{border-color:var(--up);color:var(--up)}
 .sov-dn .sov-lbl{border-color:var(--dn);color:var(--dn)}
 
-/* Action buttons below card — desktop fallback */
-.act-row{width:100%;padding:12px 20px 20px;display:flex;
-  justify-content:center;gap:12px;background:var(--bg);
-  border-top:1px solid var(--bdr);flex-shrink:0}
-.act-btn{display:flex;flex-direction:column;align-items:center;gap:3px;
-  background:var(--surf);border:1px solid var(--bdr);border-radius:14px;
-  padding:12px 0;width:68px;cursor:pointer;font-family:'DM Sans',sans-serif;
-  transition:transform .15s,border-color .2s}
-.act-btn:hover{transform:translateY(-3px)}
-.act-btn:active{transform:scale(.95)}
-.act-ico{font-size:1.3rem}
-.act-lbl{font-size:.6rem;font-weight:600;text-transform:uppercase;
-  letter-spacing:.05em;color:var(--muted)}
-.abt-lt{border-color:rgba(245,158,11,.4)}.abt-lt:hover{border-color:var(--lt)}
-.abt-rt{border-color:rgba(79,124,255,.4)}.abt-rt:hover{border-color:var(--rt)}
-.abt-up{border-color:rgba(34,197,94,.4);width:80px}.abt-up:hover{border-color:var(--up)}
-.abt-dn{border-color:rgba(239,68,68,.3)}.abt-dn:hover{border-color:var(--dn)}
-
-/* ── Done ───────────────────────────────────────────────────────── */
-#s-done{justify-content:center;align-items:center;gap:16px;text-align:center;
-  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.1) 0%,transparent 70%),var(--bg)}
-.done-ico{font-size:4rem;margin-bottom:4px}
+/* ── DONE ────────────────────────────────────────────────────────── */
+#s-done{justify-content:center;gap:16px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.1),transparent 70%),var(--bg)}
+.done-ico{font-size:3.8rem}
 .done-ttl{font-family:'DM Serif Display',serif;font-size:2rem}
-.done-sub{color:var(--muted);max-width:300px;line-height:1.65;font-size:.95rem}
-.done-stats{display:flex;gap:24px;background:var(--surf);border:1px solid var(--bdr);
-  border-radius:16px;padding:18px 26px}
-.dstat{display:flex;flex-direction:column;align-items:center;gap:4px}
-.dstat-n{font-family:'DM Serif Display',serif;font-size:2rem}
-.dstat-l{font-size:.72rem;color:var(--muted)}
-
-/* ── Loading ─────────────────────────────────────────────────────── */
-#s-load{justify-content:center;align-items:center;gap:14px}
-.spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--bdr);
-  border-top-color:var(--acc);animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.load-txt{color:var(--muted);font-size:.9rem}
+.done-sub{color:var(--muted);max-width:300px;line-height:1.65;font-size:.93rem}
+.done-stats{display:flex;gap:22px;background:var(--surf);border:1px solid var(--bdr);
+  border-radius:16px;padding:16px 24px}
+.dstat-n{font-family:'DM Serif Display',serif;font-size:1.9rem;text-align:center}
+.dstat-l{font-size:.7rem;color:var(--muted);text-align:center}
 
 /* ── Toast ───────────────────────────────────────────────────────── */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
   background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;
   padding:9px 18px;font-size:.85rem;opacity:0;transition:opacity .25s,transform .25s;
   pointer-events:none;z-index:100;white-space:nowrap}
@@ -191,161 +161,145 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   <div class="auth-logo">Biobridge Partners</div>
   <div class="auth-sub">Network Scoring · Sign in to continue</div>
   <button class="btn-msft" id="btn-msft" onclick="signIn()">
-    <svg class="msft-icon" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+    <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
     Sign in with Microsoft
   </button>
-  <div class="auth-err" id="auth-err"></div>
-  <p style="color:var(--muted);font-size:.72rem;margin-top:16px;text-align:center;max-width:260px;line-height:1.6">Only @biobridgepartners.com accounts are permitted access.</p>
+  <div id="auth-err" style="color:#ef4444;font-size:.82rem;margin-top:14px;text-align:center;max-width:280px;line-height:1.5;display:none"></div>
+  <p style="color:var(--muted);font-size:.72rem;margin-top:16px;text-align:center;max-width:260px;line-height:1.6">Only @biobridgepartners.com accounts are permitted.</p>
   <p style="color:var(--muted);font-size:.7rem;margin-top:20px">— or —</p>
-  <button onclick="devBypass()" style="margin-top:8px;background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;">Test Mode</button>
+  <button onclick="devBypass()" style="margin-top:8px;background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif">Test Mode</button>
 </div>
 
 <!-- ══ ONBOARDING ══════════════════════════════════════════════════ -->
 <div id="s-onboard" class="screen off">
-  <div class="ob-wrap">
-    <div class="ob-header">
-      <div class="ob-dots">
-        <div class="dot on"  id="d0"></div>
-        <div class="dot"     id="d1"></div>
-        <div class="dot"     id="d2"></div>
-        <div class="dot"     id="d3"></div>
-      </div>
-      <button class="btn-sec" onclick="obGo(3)" style="padding:6px 14px;font-size:.8rem">Skip</button>
-    </div>
 
-    <!-- Step 0 -->
-    <div class="ob-step" id="ob0">
-      <div class="ob-content">
-        <div class="sname">Map your<br><em>network strength</em></div>
-        <p class="sbody">Biobridge is building an interactive map of our collective network across the life science industry. Your task is to rate the strength of your personal relationship with each contact shown.</p>
-        <p class="sbody">The profiles you will see are drawn from the LinkedIn connections you submitted. They have been pre-filtered for life science relevance, so you are only scoring a focused subset — not your entire network.</p>
-      </div>
-      <div class="ob-nav">
-        <button class="btn-pri" onclick="obGo(1)">Next →</button>
-      </div>
+  <!-- Step 0: Purpose -->
+  <div class="ob-step" id="ob0">
+    <div class="ob-hdr">
+      <div class="ob-dots"><div class="dot on" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+      <button class="btn-sec" onclick="obGo(3)" style="width:auto;padding:6px 14px;font-size:.8rem">Skip</button>
     </div>
-
-    <!-- Step 1 -->
-    <div class="ob-step off" id="ob1">
-      <div class="ob-content" style="overflow-y:auto">
-        <div class="sname">Rate each<br><em>relationship</em></div>
-        <p class="sbody">Score each contact based on the strength of your personal relationship using the four levels below.</p>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
-          <div class="score-card">
-            <div class="score-icon" style="background:rgba(245,158,11,.15)">👋</div>
-            <div><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div>
-          </div>
-          <div class="score-card">
-            <div class="score-icon" style="background:rgba(79,124,255,.15)">🤝</div>
-            <div><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div>
-          </div>
-          <div class="score-card">
-            <div class="score-icon" style="background:rgba(34,197,94,.15)">⭐</div>
-            <div><h4>3 · Strong</h4><p>You would pick up the phone for each other. Trust exists, and you could ask for a warm introduction.</p></div>
-          </div>
-          <div class="score-card">
-            <div class="score-icon" style="background:rgba(239,68,68,.15)">🗑️</div>
-            <div><h4>Remove</h4><p>Not relevant or misclassified. Removes the contact from your scoring queue.</p></div>
-          </div>
-        </div>
-      </div>
-      <div class="ob-nav">
-        <button class="btn-sec" onclick="obGo(0)" style="width:72px">←</button>
-        <button class="btn-pri" onclick="obGo(2)">Next →</button>
-      </div>
+    <div class="ob-body">
+      <div class="ob-ttl">Map your<br><em>network strength</em></div>
+      <p class="ob-txt">Biobridge is building an interactive map of our collective network across the life science industry. Your task is to rate the strength of your personal relationship with each contact shown.</p>
+      <p class="ob-txt">The profiles you see are drawn from the LinkedIn connections you submitted. They have been pre-filtered for life science relevance, so you are only scoring a focused subset — not your entire network.</p>
     </div>
+    <div class="ob-nav"><button class="btn-pri" onclick="obGo(1)">Next →</button></div>
+  </div>
 
-    <!-- Step 2 -->
-    <div class="ob-step off" id="ob2">
-      <div class="ob-content">
-        <div class="sname">How to<br><em>score</em></div>
-        <p class="sbody">Swipe the card in the direction shown, or use the arrow keys on your keyboard.</p>
-        <!-- Compass: 3-col grid, no centre circle, arrows instead -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;max-width:280px;margin:0 auto 20px">
-          <!-- row 1 -->
-          <div></div>
-          <div style="background:var(--surf);border:1px solid rgba(34,197,94,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
-            <div style="font-size:1.5rem">⭐</div>
-            <div style="font-size:.75rem;color:var(--up);font-weight:600">↑ Strong</div>
-          </div>
-          <div></div>
-          <!-- row 2 -->
-          <div style="background:var(--surf);border:1px solid rgba(245,158,11,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
-            <div style="font-size:1.5rem">👋</div>
-            <div style="font-size:.75rem;color:var(--lt);font-weight:600">← Loose</div>
-          </div>
-          <div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem">🃏</div>
-          <div style="background:var(--surf);border:1px solid rgba(79,124,255,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
-            <div style="font-size:1.5rem">🤝</div>
-            <div style="font-size:.75rem;color:var(--rt);font-weight:600">Pro →</div>
-          </div>
-          <!-- row 3 -->
-          <div></div>
-          <div style="background:var(--surf);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
-            <div style="font-size:1.5rem">🗑️</div>
-            <div style="font-size:.75rem;color:var(--dn);font-weight:600">↓ Remove</div>
-          </div>
-          <div></div>
-        </div>
-        <p style="font-size:.82rem;color:var(--muted);line-height:1.55">Your connections at our priority accounts are shown first.</p>
-      </div>
-      <div class="ob-nav">
-        <button class="btn-sec" onclick="obGo(1)" style="width:72px">←</button>
-        <button class="btn-pri" onclick="obGo(3)">Next →</button>
-      </div>
+  <!-- Step 1: Scoring criteria -->
+  <div class="ob-step off" id="ob1">
+    <div class="ob-hdr">
+      <div class="ob-dots"><div class="dot" id="d10"></div><div class="dot on" id="d11"></div><div class="dot" id="d12"></div><div class="dot" id="d13"></div></div>
+      <button class="btn-sec" onclick="obGo(3)" style="width:auto;padding:6px 14px;font-size:.8rem">Skip</button>
     </div>
-
-    <!-- Step 3 -->
-    <div class="ob-step off" id="ob3">
-      <div class="ob-content">
-        <div class="sname">Ready to<br><em>get started?</em></div>
-        <p class="sbody">You are signed in as <strong id="ob-user">—</strong>.</p>
-        <p class="sbody">You will only see your own connections. Each person scores their network independently, and the results are combined into a single shared map.</p>
-        <p class="sbody" style="font-size:.85rem">If you need to stop, simply close the app. Your progress is saved automatically and you will continue from where you left off.</p>
-      </div>
-      <div class="ob-nav">
-        <button class="btn-sec" onclick="obGo(2)" style="width:72px">←</button>
-        <button class="btn-pri" onclick="startScoring()">Start scoring →</button>
-      </div>
+    <div class="ob-body">
+      <div class="ob-ttl">Rate each<br><em>relationship</em></div>
+      <p class="ob-txt">Score each contact based on the strength of your personal relationship using the four levels below.</p>
+      <div class="sc-card"><div class="sc-ico" style="background:rgba(245,158,11,.15)">👋</div><div><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="background:rgba(79,124,255,.15)">🤝</div><div><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="background:rgba(34,197,94,.15)">⭐</div><div><h4>3 · Strong</h4><p>You would pick up the phone for each other. Trust exists, and you could ask for a warm introduction.</p></div></div>
+      <div class="sc-card"><div class="sc-ico" style="background:rgba(239,68,68,.15)">🗑️</div><div><h4>Remove</h4><p>Not relevant or misclassified. Removes the contact from your scoring queue.</p></div></div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn-sec" onclick="obGo(0)">←</button>
+      <button class="btn-pri" onclick="obGo(2)">Next →</button>
     </div>
   </div>
+
+  <!-- Step 2: How to score (compass) -->
+  <div class="ob-step off" id="ob2">
+    <div class="ob-hdr">
+      <div class="ob-dots"><div class="dot" id="d20"></div><div class="dot" id="d21"></div><div class="dot on" id="d22"></div><div class="dot" id="d23"></div></div>
+      <button class="btn-sec" onclick="obGo(3)" style="width:auto;padding:6px 14px;font-size:.8rem">Skip</button>
+    </div>
+    <div class="ob-body">
+      <div class="ob-ttl">How to<br><em>score</em></div>
+      <p class="ob-txt"><strong>On mobile:</strong> swipe the card in the direction of the score you want to give.<br><strong>On desktop:</strong> use the arrow keys on your keyboard — up, down, left, right.</p>
+      <!-- Compass: 3x3 grid, crosshair arrows in centre, no box there -->
+      <div style="display:grid;grid-template-columns:1fr 100px 1fr;grid-template-rows:90px 90px 90px;gap:8px;max-width:308px;margin:4px auto 20px;align-items:center;justify-items:center">
+        <!-- row 1 -->
+        <div></div>
+        <div style="background:var(--surf);border:1px solid rgba(34,197,94,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <span style="font-size:1.3rem">⭐</span>
+          <span style="font-size:.78rem;color:var(--up);font-weight:600">Strong</span>
+        </div>
+        <div></div>
+        <!-- row 2 -->
+        <div style="background:var(--surf);border:1px solid rgba(245,158,11,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <span style="font-size:1.3rem">👋</span>
+          <span style="font-size:.78rem;color:var(--lt);font-weight:600">Loose</span>
+        </div>
+        <!-- Centre: crosshair arrows, no box -->
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative">
+          <!-- vertical arrow -->
+          <svg width="32" height="90" viewBox="0 0 32 90" style="position:absolute">
+            <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="rgba(255,255,255,0.3)"/></marker>
+            <marker id="at" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="rgba(255,255,255,0.3)"/></marker></defs>
+            <line x1="16" y1="8" x2="16" y2="82" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-start="url(#at)" marker-end="url(#ah)"/>
+          </svg>
+          <!-- horizontal arrow -->
+          <svg width="100" height="32" viewBox="0 0 100 32" style="position:absolute">
+            <line x1="8" y1="16" x2="92" y2="16" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-start="url(#at)" marker-end="url(#ah)"/>
+          </svg>
+        </div>
+        <div style="background:var(--surf);border:1px solid rgba(79,124,255,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <span style="font-size:1.3rem">🤝</span>
+          <span style="font-size:.78rem;color:var(--rt);font-weight:600">Professional</span>
+        </div>
+        <!-- row 3 -->
+        <div></div>
+        <div style="background:var(--surf);border:1px solid rgba(239,68,68,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <span style="font-size:1.3rem">🗑️</span>
+          <span style="font-size:.78rem;color:var(--dn);font-weight:600">Remove</span>
+        </div>
+        <div></div>
+      </div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn-sec" onclick="obGo(1)">←</button>
+      <button class="btn-pri" onclick="obGo(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Ready -->
+  <div class="ob-step off" id="ob3">
+    <div class="ob-hdr">
+      <div class="ob-dots"><div class="dot" id="d30"></div><div class="dot" id="d31"></div><div class="dot" id="d32"></div><div class="dot on" id="d33"></div></div>
+      <div></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-ttl">Ready to<br><em>get started?</em></div>
+      <p class="ob-txt">You are signed in as <strong id="ob-user">—</strong>.</p>
+      <p class="ob-txt">Each team member scores their own network independently. The results are combined into a single shared map that Biobridge uses for business development.</p>
+      <p class="ob-txt" style="font-size:.85rem">If you need to stop, simply close the app. Your progress is saved automatically and you will continue from where you left off next time.</p>
+    </div>
+    <div class="ob-nav">
+      <button class="btn-sec" onclick="obGo(2)">←</button>
+      <button class="btn-pri" onclick="startScoring()">Start scoring →</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ LOADING ═════════════════════════════════════════════════════ -->
 <div id="s-load" class="screen off">
   <div class="spinner"></div>
-  <div class="load-txt" id="load-txt">Loading your connections…</div>
+  <div style="color:var(--muted);font-size:.9rem" id="load-txt">Loading your connections…</div>
 </div>
 
 <!-- ══ SCORING ══════════════════════════════════════════════════════ -->
 <div id="s-score" class="screen off">
-  <!-- Header -->
-  <div class="sc-header">
-    <div>
-      <div class="sc-name" id="sc-name">—</div>
-      <div class="sc-sub">Scoring your connections</div>
-    </div>
-    <div class="sc-count">
-      <div><strong id="sc-scored">0</strong> scored</div>
-      <div><strong id="sc-left">0</strong> remaining</div>
-    </div>
+  <div class="sc-hdr">
+    <div><div class="sc-nm" id="sc-name">—</div><div class="sc-sub">Scoring your connections</div></div>
+    <div class="sc-ct"><div><strong id="sc-scored">0</strong> scored</div><div><strong id="sc-left">0</strong> remaining</div></div>
   </div>
-  <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
-
-  <!-- Arena with hint icons -->
+  <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
   <div class="arena" id="arena">
-    <div class="hint" id="h-up"><div class="hint-ico">⭐</div><div class="hint-lbl">Strong</div></div>
-    <div class="hint" id="h-dn"><div class="hint-ico">🗑️</div><div class="hint-lbl">Remove</div></div>
-    <div class="hint" id="h-lt"><div class="hint-ico">👋</div><div class="hint-lbl">Loose</div></div>
-    <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl">Pro</div></div>
-  </div>
-
-  <!-- Action buttons (desktop fallback, always visible) -->
-  <div class="act-row">
-    <button class="act-btn abt-lt" onclick="go(1)"><span class="act-ico">👋</span><span class="act-lbl">Loose</span></button>
-    <button class="act-btn abt-dn" onclick="go('r')"><span class="act-ico">🗑️</span><span class="act-lbl">Remove</span></button>
-    <button class="act-btn abt-up" onclick="go(3)"><span class="act-ico">⭐</span><span class="act-lbl">Strong</span></button>
-    <button class="act-btn abt-rt" onclick="go(2)"><span class="act-ico">🤝</span><span class="act-lbl">Pro</span></button>
+    <div class="hint" id="h-up"><div class="hint-ico">⭐</div><div class="hint-lbl" style="color:var(--up)">Strong</div></div>
+    <div class="hint" id="h-dn"><div class="hint-ico">🗑️</div><div class="hint-lbl" style="color:var(--dn)">Remove</div></div>
+    <div class="hint" id="h-lt"><div class="hint-ico">👋</div><div class="hint-lbl" style="color:var(--lt)">Loose</div></div>
+    <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl" style="color:var(--rt)">Professional</div></div>
   </div>
 </div>
 
@@ -355,79 +309,78 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   <div class="done-ttl">All done!</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
   <div class="done-stats">
-    <div class="dstat"><div class="dstat-n" id="dn-scored">0</div><div class="dstat-l">Scored</div></div>
-    <div class="dstat"><div class="dstat-n" id="dn-strong">0</div><div class="dstat-l">Strong</div></div>
-    <div class="dstat"><div class="dstat-n" id="dn-rem">0</div><div class="dstat-l">Removed</div></div>
+    <div><div class="dstat-n" id="dn-s">0</div><div class="dstat-l">Scored</div></div>
+    <div><div class="dstat-n" id="dn-st">0</div><div class="dstat-l">Strong</div></div>
+    <div><div class="dstat-n" id="dn-r">0</div><div class="dstat-l">Removed</div></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ Config ═══════════════════════════════════════════════════════
-const DOMAIN       = "biobridgepartners.com";
-const SP_SITE      = APP_CONFIG.SHAREPOINT_SITE;
-const SP_LIST      = "NetworkScores";
-const SP_CSV       = "output/to_score_latest.csv";
-const SP_SCOPES    = ["https://biobridgepartners.sharepoint.com/.default"];
+// ── Config ────────────────────────────────────────────────────────
+var DOMAIN    = "biobridgepartners.com";
+var SP_SITE   = APP_CONFIG.SHAREPOINT_SITE;
+var SP_LIST   = "NetworkScores";
+var SP_CSV    = "output/to_score_latest.csv";
+var SP_SCOPES = ["https://biobridgepartners.sharepoint.com/.default"];
 
-const msalCfg = {
-  auth:{
-    clientId:   APP_CONFIG.AZURE_CLIENT_ID,
-    authority:  `https://login.microsoftonline.com/${APP_CONFIG.AZURE_TENANT_ID}`,
-    redirectUri: window.location.origin + window.location.pathname,
-  },
+var msalCfg = {
+  auth:{clientId:APP_CONFIG.AZURE_CLIENT_ID,
+    authority:"https://login.microsoftonline.com/"+APP_CONFIG.AZURE_TENANT_ID,
+    redirectUri:window.location.origin+window.location.pathname},
   cache:{cacheLocation:"sessionStorage"}
 };
-const msal_app = (typeof msal !== "undefined")
-  ? new msal.PublicClientApplication(msalCfg) : null;
+var msalApp = (typeof msal!=="undefined") ? new msal.PublicClientApplication(msalCfg) : null;
 
-// ══ State ════════════════════════════════════════════════════════
-var S = {
-  user:null, token:null,
-  queue:[], scores:{},
-  idx:0, total:0,
-  siteId:null, listId:null
-};
+// ── State ─────────────────────────────────────────────────────────
+var S = {user:null,token:null,queue:[],scores:{},idx:0,total:0,siteId:null,listId:null};
 
-// ══ Screen helper ════════════════════════════════════════════════
+// ── Helpers ───────────────────────────────────────────────────────
 function show(id){
   document.querySelectorAll(".screen").forEach(function(el){el.classList.add("off");});
   document.getElementById(id).classList.remove("off");
 }
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){el.classList.remove("on");},1600);
+}
 
-// ══ Auth ═════════════════════════════════════════════════════════
-window.addEventListener("load", async function(){
+// ── Auth ──────────────────────────────────────────────────────────
+window.addEventListener("load",async function(){
   try{
-    if(!msal_app) return;
-    await msal_app.initialize();
-    var r = await msal_app.handleRedirectPromise();
+    if(!msalApp) return;
+    await msalApp.initialize();
+    var r=await msalApp.handleRedirectPromise();
     if(r){onAuth(r);return;}
-    var accs = msal_app.getAllAccounts();
+    var accs=msalApp.getAllAccounts();
     if(accs.length){
       try{
-        var t = await msal_app.acquireTokenSilent({scopes:SP_SCOPES,account:accs[0]});
+        var t=await msalApp.acquireTokenSilent({scopes:SP_SCOPES,account:accs[0]});
         onAuth({account:accs[0],accessToken:t.accessToken});
       }catch(e){}
     }
-  }catch(e){console.warn("MSAL init:",e.message);}
+  }catch(e){console.warn("MSAL:",e.message);}
 });
 
 async function signIn(){
-  if(!msal_app){showErr("Microsoft sign-in not available — use test mode.");return;}
+  if(!msalApp){showAuthErr("Microsoft sign-in unavailable — use Test Mode.");return;}
   var btn=document.getElementById("btn-msft");
   btn.disabled=true; btn.textContent="Signing in…";
-  try{await msal_app.loginRedirect({scopes:SP_SCOPES});}
+  try{await msalApp.loginRedirect({scopes:SP_SCOPES});}
   catch(e){
-    showErr("Sign-in failed. Please try again.");
+    showAuthErr("Sign-in failed. Please try again.");
     btn.disabled=false;
-    btn.innerHTML='<svg class="msft-icon" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Sign in with Microsoft';
+    btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Sign in with Microsoft';
   }
 }
+function showAuthErr(m){var el=document.getElementById("auth-err");el.textContent=m;el.style.display="block";}
 
 function onAuth(r){
   var email=r.account.username.toLowerCase();
-  if(!email.endsWith("@"+DOMAIN)){showErr("Access denied. Only @"+DOMAIN+" accounts are permitted.");msal_app&&msal_app.logoutRedirect();return;}
+  if(!email.endsWith("@"+DOMAIN)){showAuthErr("Access denied. Only @"+DOMAIN+" accounts.");msalApp&&msalApp.logoutRedirect();return;}
   var contrib=email.split("@")[0].split(".")[0].toLowerCase();
   S.user={name:r.account.name||contrib,email:email,contributor:contrib};
   S.token=r.accessToken||null;
@@ -435,23 +388,17 @@ function onAuth(r){
   show("s-onboard");
 }
 
-function showErr(msg){
-  var el=document.getElementById("auth-err");
-  el.textContent=msg; el.style.display="block";
-}
-
-// Dev bypass
 function devBypass(){
   try{
     S.user={name:"Test Mode",email:"florian@biobridgepartners.com",contributor:"florian"};
     S.token=null;
-    document.getElementById("ob-user").textContent="Florian Preis (test mode)";
+    document.getElementById("ob-user").textContent="Test Mode";
     EMBEDDED=[
       {unique_id:"t1",contributor:"florian","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023",score:""},
       {unique_id:"t2",contributor:"florian","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022",score:""},
       {unique_id:"t3",contributor:"florian","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"LEO Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021",score:""},
-      {unique_id:"t4",contributor:"florian","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020",score:""},
-      {unique_id:"t5",contributor:"florian","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory",target_account:"Genmab",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023",score:""},
+      {unique_id:"t4",contributor:"florian","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020",score:""},
+      {unique_id:"t5",contributor:"florian","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"Genmab",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023",score:""},
       {unique_id:"t6",contributor:"florian","First Name":"Peter","Last Name":"Hansen",Company:"Zealand Pharma",Position:"Chief Medical Officer",target_account:"Zealand Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"14 Apr 2022",score:""},
       {unique_id:"t7",contributor:"florian","First Name":"Camilla","Last Name":"Madsen",Company:"McKinsey & Company",Position:"Partner, Healthcare Practice",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"01 Nov 2019",score:""},
       {unique_id:"t8",contributor:"florian","First Name":"Jonas","Last Name":"Pedersen",Company:"Novo Holdings",Position:"Investment Director",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"30 Aug 2021",score:""},
@@ -462,17 +409,17 @@ function devBypass(){
   }catch(e){alert("Error: "+e.message);}
 }
 
-// ══ Onboarding ═══════════════════════════════════════════════════
+// ── Onboarding ────────────────────────────────────────────────────
 var obStep=0;
+// Dot element IDs per step: each step has its own set prefixed d0x,d1x etc
+var dotIds=[[("d0"),("d1"),("d2"),("d3")],[("d10"),("d11"),("d12"),("d13")],[("d20"),("d21"),("d22"),("d23")],[("d30"),("d31"),("d32"),("d33")]];
 function obGo(n){
   document.getElementById("ob"+obStep).classList.add("off");
-  document.getElementById("d"+obStep).classList.remove("on");
   obStep=Math.max(0,Math.min(3,n));
   document.getElementById("ob"+obStep).classList.remove("off");
-  document.getElementById("d"+obStep).classList.add("on");
 }
 
-// ══ SharePoint helpers ═══════════════════════════════════════════
+// ── SharePoint ────────────────────────────────────────────────────
 async function spReq(path,method,body){
   var opts={method:method||"GET",headers:{Authorization:"Bearer "+S.token,"Content-Type":"application/json",Accept:"application/json"}};
   if(body) opts.body=JSON.stringify(body);
@@ -483,8 +430,7 @@ async function spReq(path,method,body){
 }
 async function getSiteId(){
   if(S.siteId) return S.siteId;
-  var host=new URL(SP_SITE).hostname, path=new URL(SP_SITE).pathname;
-  var d=await spReq("/sites/"+host+":"+path);
+  var d=await spReq("/sites/"+new URL(SP_SITE).hostname+":"+new URL(SP_SITE).pathname);
   S.siteId=d.id; return S.siteId;
 }
 async function ensureList(){
@@ -496,7 +442,7 @@ async function ensureList(){
   S.listId=l.id; return S.listId;
 }
 async function loadScores(contrib){
-  var sid=await getSiteId(), lid=await ensureList(), sc={};
+  var sid=await getSiteId(),lid=await ensureList(),sc={};
   var path="/sites/"+sid+"/lists/"+lid+"/items?$expand=fields&$filter=fields/contributor eq '"+contrib+"'&$top=999";
   while(path){
     var d=await spReq(path);
@@ -507,42 +453,38 @@ async function loadScores(contrib){
 }
 async function saveScore(uid,score,date){
   try{
-    var sid=await getSiteId(), lid=await ensureList();
-    var ex=S.scores[uid];
-    if(ex&&ex.itemId){await spReq("/sites/"+sid+"/lists/"+lid+"/items/"+ex.itemId+"/fields","PATCH",{score:String(score),score_date:date});}
-    else{await spReq("/sites/"+sid+"/lists/"+lid+"/items","POST",{fields:{unique_id:uid,contributor:S.user.contributor,score:String(score),score_date:date}});}
-  }catch(e){console.warn("Save failed:",e.message);}
+    var sid=await getSiteId(),lid=await ensureList(),ex=S.scores[uid];
+    if(ex&&ex.itemId) await spReq("/sites/"+sid+"/lists/"+lid+"/items/"+ex.itemId+"/fields","PATCH",{score:String(score),score_date:date});
+    else await spReq("/sites/"+sid+"/lists/"+lid+"/items","POST",{fields:{unique_id:uid,contributor:S.user.contributor,score:String(score),score_date:date}});
+  }catch(e){console.warn("save:",e.message);}
 }
 async function loadCSV(){
-  var sid=await getSiteId();
-  var drvs=await spReq("/sites/"+sid+"/drives");
-  var drv=drvs.value[0];
+  var sid=await getSiteId(),drvs=await spReq("/sites/"+sid+"/drives"),drv=drvs.value[0];
   var r=await fetch("https://graph.microsoft.com/v1.0/sites/"+sid+"/drives/"+drv.id+"/root:/"+SP_CSV+":/content",{headers:{Authorization:"Bearer "+S.token}});
-  if(!r.ok) throw new Error("CSV not found at "+SP_CSV+" — run filter.py first");
+  if(!r.ok) throw new Error("CSV not found — run filter.py first");
   return r.text();
 }
 
-// ══ CSV parser ════════════════════════════════════════════════════
+// ── CSV ───────────────────────────────────────────────────────────
 function parseCSV(txt){
   var lines=txt.trim().split(/\r?\n/);
   var hdrs=lines[0].split(",").map(function(h){return h.replace(/^"|"$/g,"").trim();});
   return lines.slice(1).map(function(line){
-    var vals=[],cur="",inQ=false;
+    var vals=[],cur="",q=false;
     for(var i=0;i<line.length;i++){
-      if(line[i]==='"'){inQ=!inQ;continue;}
-      if(line[i]===','&&!inQ){vals.push(cur.trim());cur="";continue;}
+      if(line[i]==='"'){q=!q;continue;}
+      if(line[i]===','&&!q){vals.push(cur.trim());cur="";continue;}
       cur+=line[i];
     }
     vals.push(cur.trim());
-    var obj={};hdrs.forEach(function(h,i){obj[h]=vals[i]||"";});
-    return obj;
+    var o={};hdrs.forEach(function(h,i){o[h]=vals[i]||"";});return o;
   }).filter(function(r){return r.unique_id;});
 }
 
-// ══ EMBEDDED (test data) ═════════════════════════════════════════
+// ── Embedded test data ────────────────────────────────────────────
 var EMBEDDED=[];
 
-// ══ Start scoring ════════════════════════════════════════════════
+// ── Start scoring ─────────────────────────────────────────────────
 async function startScoring(){
   show("s-load");
   var contrib=S.user.contributor;
@@ -553,61 +495,48 @@ async function startScoring(){
       S.scores={};
     } else {
       document.getElementById("load-txt").textContent="Loading your connections…";
-      var csv=await loadCSV();
-      var all=parseCSV(csv);
+      var all=parseCSV(await loadCSV());
       conns=all.filter(function(r){return r.contributor===contrib;});
       document.getElementById("load-txt").textContent="Loading your previous scores…";
       S.scores=await loadScores(contrib);
     }
-
     conns.sort(function(a,b){
       var ta=a.target_account?0:1,tb=b.target_account?0:1;
-      if(ta!==tb) return ta-tb;
+      if(ta!==tb)return ta-tb;
       return (a.life_science_relevant==="yes"?0:1)-(b.life_science_relevant==="yes"?0:1);
     });
-
     S.queue=conns.filter(function(c){return !S.scores[c.unique_id];});
     S.total=S.queue.length;
     S.idx=0;
-
     document.getElementById("sc-name").textContent=contrib.charAt(0).toUpperCase()+contrib.slice(1);
     show("s-score");
     updateProg();
     render();
-  }catch(e){
-    show("s-onboard");
-    toast("Error: "+e.message);
-    console.error(e);
-  }
+  }catch(e){show("s-onboard");toast("Error: "+e.message);console.error(e);}
 }
 
-// ══ Card rendering ════════════════════════════════════════════════
+// ── Card rendering ────────────────────────────────────────────────
 function render(){
   var arena=document.getElementById("arena");
   arena.querySelectorAll(".pcard").forEach(function(c){c.remove();});
   if(S.idx>=S.queue.length){doneScreen();return;}
-
-  // Next card (background)
   if(S.idx+1<S.queue.length){
     var nxt=buildCard(S.queue[S.idx+1]);
-    nxt.style.cssText+="transform:scale(.95) translateY(12px);opacity:.45;z-index:0;pointer-events:none";
+    nxt.style.cssText="transform:scale(.95) translateY(14px);opacity:.4;z-index:0;pointer-events:none;position:absolute";
     arena.appendChild(nxt);
   }
-  // Current card (top)
   var card=buildCard(S.queue[S.idx]);
-  card.style.zIndex="1";
   arena.appendChild(card);
   attachSwipe(card);
 }
 
 function buildCard(c){
-  var card=document.createElement("div");
-  card.className="pcard";
+  var el=document.createElement("div");
+  el.className="pcard";
   var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
-  var snr=c.seniority==="Senior";
-  var tgt=!!c.target_account;
-  card.innerHTML=(tgt?'<div class="pbadge tgt">🎯 '+c.target_account+'</div>':'<div class="pbadge">Network</div>')+
-    '<div style="display:flex;gap:12px;align-items:flex-start">'+
+  el.innerHTML=
+    (c.target_account?'<div class="pbadge tgt">🎯 '+c.target_account+'</div>':'<div class="pbadge">Network</div>')+
+    '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:0">'+
       '<div class="pavatar">'+ini+'</div>'+
       '<div style="flex:1;min-width:0">'+
         '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
@@ -617,7 +546,7 @@ function buildCard(c){
     '</div>'+
     '<div class="pdiv"></div>'+
     '<div class="ptags">'+
-      (snr?'<span class="ptag snr">⭐ Senior</span>':'')+
+      (c.seniority==="Senior"?'<span class="ptag snr">⭐ Senior</span>':'')+
       (c.life_science_relevant==="yes"?'<span class="ptag">✓ Life science</span>':'<span class="ptag">~ Borderline</span>')+
       (c["Connected On"]?'<span class="ptag">Connected '+c["Connected On"]+'</span>':'')+
     '</div>'+
@@ -625,112 +554,88 @@ function buildCard(c){
     '<div class="sov sov-rt"><div class="sov-lbl">Professional</div></div>'+
     '<div class="sov sov-up"><div class="sov-lbl">Strong ⭐</div></div>'+
     '<div class="sov sov-dn"><div class="sov-lbl">Remove 🗑️</div></div>';
-  return card;
+  return el;
 }
 
-// ══ Swipe (Hammer) ════════════════════════════════════════════════
+// ── Swipe ─────────────────────────────────────────────────────────
 function attachSwipe(card){
   var mc=new Hammer.Manager(card);
-  mc.add(new Hammer.Pan({threshold:10,direction:Hammer.DIRECTION_ALL}));
-  mc.add(new Hammer.Swipe({threshold:50,velocity:.3,direction:Hammer.DIRECTION_ALL}));
-
+  mc.add(new Hammer.Pan({threshold:8,direction:Hammer.DIRECTION_ALL}));
+  mc.add(new Hammer.Swipe({threshold:40,velocity:.25,direction:Hammer.DIRECTION_ALL}));
+  var swiped=false;
   mc.on("panmove",function(e){
-    card.style.transform="translate("+e.deltaX+"px,"+e.deltaY+"px) rotate("+(e.deltaX*.07)+"deg)";
+    if(swiped)return;
+    card.style.transform="translate("+e.deltaX+"px,"+e.deltaY+"px) rotate("+(e.deltaX*.06)+"deg)";
     card.style.transition="none";
     card.querySelectorAll(".sov").forEach(function(o){o.style.opacity="0";});
     ["up","dn","lt","rt"].forEach(function(d){document.getElementById("h-"+d).classList.remove("lit");});
     var ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
-    if(ax>ay&&ax>40){
+    if(ax>ay&&ax>30){
       var d=e.deltaX>0?"rt":"lt";
-      card.querySelector(".sov-"+d).style.opacity=Math.min(ax/100,.9);
+      card.querySelector(".sov-"+d).style.opacity=Math.min(ax/90,.9);
       document.getElementById("h-"+d).classList.add("lit");
-    } else if(ay>40){
+    } else if(ay>30){
       var d2=e.deltaY<0?"up":"dn";
-      card.querySelector(".sov-"+d2).style.opacity=Math.min(ay/100,.9);
+      card.querySelector(".sov-"+d2).style.opacity=Math.min(ay/90,.9);
       document.getElementById("h-"+d2).classList.add("lit");
     }
   });
-
   mc.on("panend",function(e){
+    if(swiped)return;
     card.style.transition="transform .3s ease";
     ["up","dn","lt","rt"].forEach(function(d){document.getElementById("h-"+d).classList.remove("lit");});
     var ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
-    if(ax>ay&&ax>80)      fly(card,e.deltaX>0?"rt":"lt",e.deltaX>0?2:1);
-    else if(ay>80)        fly(card,e.deltaY<0?"up":"dn",e.deltaY<0?3:"r");
+    if(ax>ay&&ax>70){swiped=true;fly(card,e.deltaX>0?"rt":"lt",e.deltaX>0?2:1);}
+    else if(ay>70){swiped=true;fly(card,e.deltaY<0?"up":"dn",e.deltaY<0?3:"r");}
     else card.style.transform="translate(0,0) rotate(0deg)";
   });
-
-  mc.on("swipeleft",  function(){fly(card,"lt",1);});
-  mc.on("swiperight", function(){fly(card,"rt",2);});
-  mc.on("swipeup",    function(){fly(card,"up",3);});
-  mc.on("swipedown",  function(){fly(card,"dn","r");});
+  mc.on("swipeleft",  function(){if(!swiped){swiped=true;fly(card,"lt",1);}});
+  mc.on("swiperight", function(){if(!swiped){swiped=true;fly(card,"rt",2);}});
+  mc.on("swipeup",    function(){if(!swiped){swiped=true;fly(card,"up",3);}});
+  mc.on("swipedown",  function(){if(!swiped){swiped=true;fly(card,"dn","r");}});
 }
 
 function fly(card,dir,score){
-  var tx={lt:"translate(-520px,20px) rotate(-22deg)",rt:"translate(520px,20px) rotate(22deg)",up:"translate(0,-520px)",dn:"translate(0,520px)"};
-  card.style.transition="transform .35s ease,opacity .35s ease";
-  card.style.transform=tx[dir];
-  card.style.opacity="0";
-  card.style.pointerEvents="none";
-  setTimeout(function(){commit(score);card.remove();render();},350);
+  var tx={lt:"translate(-540px,20px) rotate(-22deg)",rt:"translate(540px,20px) rotate(22deg)",up:"translate(0,-540px)",dn:"translate(0,540px)"};
+  card.style.cssText+=";transition:transform .35s ease,opacity .35s ease;transform:"+tx[dir]+";opacity:0;pointer-events:none";
+  setTimeout(function(){commit(score);card.remove();render();},360);
 }
 
-function go(score){
-  var card=document.querySelector(".pcard[style*='z-index: 1'], .pcard");
-  if(!card)return;
-  var dirs={1:"lt",2:"rt",3:"up","r":"dn"};
-  fly(card,dirs[score]||"rt",score);
-}
+// Keyboard
+document.addEventListener("keydown",function(e){
+  if(document.getElementById("s-score").classList.contains("off"))return;
+  var map={"ArrowLeft":1,"ArrowRight":2,"ArrowUp":3,"ArrowDown":"r"};
+  if(map[e.key]!==undefined){e.preventDefault();fly(document.querySelector(".pcard[style*='z-index'],.pcard"),{1:"lt",2:"rt",3:"up","r":"dn"}[map[e.key]],map[e.key]);}
+});
 
-// ══ Commit score ═════════════════════════════════════════════════
+// ── Commit ────────────────────────────────────────────────────────
 function commit(score){
   if(S.idx>=S.queue.length)return;
-  var c=S.queue[S.idx];
-  var today=new Date().toISOString().split("T")[0];
+  var c=S.queue[S.idx],today=new Date().toISOString().split("T")[0];
   S.scores[c.unique_id]={score:score,score_date:today};
-  var lbls={1:"Loose 👋",2:"Professional 🤝",3:"Strong ⭐","r":"Removed"};
-  toast(lbls[score]||String(score));
-  if(S.token) saveScore(c.unique_id,score,today);
+  toast({1:"Loose 👋",2:"Professional 🤝",3:"Strong ⭐","r":"Removed 🗑️"}[score]||String(score));
+  if(S.token)saveScore(c.unique_id,score,today);
   localStorage.setItem("bb_"+S.user.contributor,JSON.stringify(S.scores));
   S.idx++;
   updateProg();
 }
 
-// ══ Progress ═════════════════════════════════════════════════════
+// ── Progress ──────────────────────────────────────────────────────
 function updateProg(){
   var pct=S.total>0?(S.idx/S.total)*100:0;
   document.getElementById("prog").style.width=pct+"%";
-  var scored=Object.values(S.scores).filter(function(s){return s.score!=="r";}).length;
-  document.getElementById("sc-scored").textContent=scored;
+  document.getElementById("sc-scored").textContent=Object.values(S.scores).filter(function(s){return s.score!=="r";}).length;
   document.getElementById("sc-left").textContent=Math.max(0,S.total-S.idx);
 }
 
-// ══ Done ═════════════════════════════════════════════════════════
+// ── Done ──────────────────────────────────────────────────────────
 function doneScreen(){
   var all=Object.values(S.scores);
-  document.getElementById("dn-scored").textContent=all.filter(function(s){return s.score!=="r";}).length;
-  document.getElementById("dn-strong").textContent=all.filter(function(s){return s.score===3||s.score==="3";}).length;
-  document.getElementById("dn-rem").textContent=all.filter(function(s){return s.score==="r";}).length;
+  document.getElementById("dn-s").textContent=all.filter(function(s){return s.score!=="r";}).length;
+  document.getElementById("dn-st").textContent=all.filter(function(s){return s.score===3||s.score==="3";}).length;
+  document.getElementById("dn-r").textContent=all.filter(function(s){return s.score==="r";}).length;
   show("s-done");
 }
-
-// ══ Toast ════════════════════════════════════════════════════════
-var _tt;
-function toast(msg){
-  var el=document.getElementById("toast");
-  el.textContent=msg; el.classList.add("on");
-  clearTimeout(_tt); _tt=setTimeout(function(){el.classList.remove("on");},1600);
-}
-
-// ══ Keyboard ═════════════════════════════════════════════════════
-document.addEventListener("keydown",function(e){
-  if(!document.getElementById("s-score").classList.contains("off")){
-    if(e.key==="ArrowLeft")  go(1);
-    if(e.key==="ArrowRight") go(2);
-    if(e.key==="ArrowUp")    go(3);
-    if(e.key==="ArrowDown")  go("r");
-  }
-});
 </script>
 </body>
 </html>
