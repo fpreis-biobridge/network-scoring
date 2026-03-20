@@ -93,10 +93,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 /* Hint labels around card — no buttons, just subtle text+icon */
 .hint{position:absolute;display:flex;flex-direction:column;align-items:center;
-  gap:3px;pointer-events:none;z-index:2;transition:opacity .15s;opacity:.5}
+  gap:3px;pointer-events:none;z-index:2;transition:opacity .15s;opacity:.7}
 .hint.lit{opacity:1}
 .hint-ico{font-size:1.3rem}
-.hint-lbl{font-size:.58rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.hint-lbl{font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 #h-up {top:16px;   left:50%;transform:translateX(-50%);color:var(--up)}
 #h-dn {bottom:16px;left:50%;transform:translateX(-50%);color:var(--dn)}
 #h-lt {left:10px;  top:50%;transform:translateY(-50%);color:var(--lt)}
@@ -231,31 +231,21 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
           <span style="font-size:1.3rem">👋</span>
           <span style="font-size:.78rem;color:var(--lt);font-weight:600">Loose</span>
         </div>
-        <!-- Centre: clean crosshair, single SVG, solid arrowheads -->
+        <!-- Centre: crosshair using paths only, no markers -->
         <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
-          <svg width="90" height="90" viewBox="0 0 90 90">
-            <defs>
-              <marker id="a1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto">
-                <path d="M0 0L8 4L0 8Z" fill="#555566"/>
-              </marker>
-              <marker id="a2" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="4" markerHeight="4" orient="auto">
-                <path d="M8 0L0 4L8 8Z" fill="#555566"/>
-              </marker>
-              <marker id="a3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto">
-                <path d="M0 0L8 4L0 8Z" fill="#555566"/>
-              </marker>
-              <marker id="a4" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="4" markerHeight="4" orient="auto">
-                <path d="M8 0L0 4L8 8Z" fill="#555566"/>
-              </marker>
-            </defs>
-            <!-- vertical: up arrow -->
-            <line x1="45" y1="42" x2="45" y2="6" stroke="#555566" stroke-width="1.5" marker-end="url(#a1)"/>
-            <!-- vertical: down arrow -->
-            <line x1="45" y1="48" x2="45" y2="84" stroke="#555566" stroke-width="1.5" marker-end="url(#a3)"/>
-            <!-- horizontal: left arrow -->
-            <line x1="43" y1="45" x2="7" y2="45" stroke="#555566" stroke-width="1.5" marker-end="url(#a2)"/>
-            <!-- horizontal: right arrow -->
-            <line x1="47" y1="45" x2="83" y2="45" stroke="#555566" stroke-width="1.5" marker-end="url(#a3)"/>
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <!-- vertical stem -->
+            <line x1="35" y1="12" x2="35" y2="58" stroke="#44445a" stroke-width="1.5"/>
+            <!-- up arrowhead -->
+            <polyline points="29,20 35,10 41,20" fill="none" stroke="#44445a" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- down arrowhead -->
+            <polyline points="29,50 35,60 41,50" fill="none" stroke="#44445a" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- horizontal stem -->
+            <line x1="12" y1="35" x2="58" y2="35" stroke="#44445a" stroke-width="1.5"/>
+            <!-- left arrowhead -->
+            <polyline points="20,29 10,35 20,41" fill="none" stroke="#44445a" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- right arrowhead -->
+            <polyline points="50,29 60,35 50,41" fill="none" stroke="#44445a" stroke-width="1.5" stroke-linejoin="round"/>
           </svg>
         </div>
         <div style="background:var(--surf);border:1px solid rgba(79,124,255,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
@@ -319,8 +309,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div class="hint" id="h-lt"><div class="hint-ico">👋</div><div class="hint-lbl" style="color:var(--lt)">Loose</div></div>
     <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl" style="color:var(--rt)">Professional</div></div>
   </div>
-  <div style="padding:8px 0 12px;font-size:.65rem;color:var(--surf2);text-align:center;flex-shrink:0;letter-spacing:.03em">
-    On desktop: arrow keys or click a side of the card
+  <div style="padding:8px 0 14px;font-size:.65rem;color:var(--muted);text-align:center;flex-shrink:0;opacity:.6;letter-spacing:.03em">
+    Use arrow keys to score
   </div>
 </div>
 
@@ -555,12 +545,7 @@ function buildCard(c){
   var el=document.createElement("div");
   el.className="pcard";
   var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
-  // Click zones: invisible divs covering each edge of the card
   el.innerHTML=
-    '<div onclick="go(3)" style="position:absolute;top:0;left:15%;width:70%;height:28%;cursor:pointer;z-index:10"></div>'+
-    '<div onclick="go(\'r\')" style="position:absolute;bottom:0;left:15%;width:70%;height:28%;cursor:pointer;z-index:10"></div>'+
-    '<div onclick="go(1)" style="position:absolute;top:15%;left:0;width:25%;height:70%;cursor:pointer;z-index:10"></div>'+
-    '<div onclick="go(2)" style="position:absolute;top:15%;right:0;width:25%;height:70%;cursor:pointer;z-index:10"></div>'+
     (c.target_account?'<div class="pbadge tgt">🎯 '+c.target_account+'</div>':'<div class="pbadge">Network</div>')+
     '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:0">'+
       '<div class="pavatar">'+ini+'</div>'+
@@ -627,22 +612,23 @@ function fly(card,dir,score){
   setTimeout(function(){commit(score);card.remove();render();},360);
 }
 
-function go(score){
-  if(document.getElementById("s-score").classList.contains("off"))return;
-  var cards=document.getElementById("arena").querySelectorAll(".pcard");
-  var top=null;
-  for(var i=0;i<cards.length;i++){if(cards[i].style.zIndex!=="0"&&cards[i].style.opacity!=="0.4"){top=cards[i];break;}}
-  if(!top&&cards.length)top=cards[cards.length-1];
-  if(!top)return;
-  var dirs={1:"lt",2:"rt",3:"up","r":"dn"};
-  fly(top,dirs[score],score);
-}
-
 // Keyboard
 document.addEventListener("keydown",function(e){
   if(document.getElementById("s-score").classList.contains("off"))return;
   var map={"ArrowLeft":1,"ArrowRight":2,"ArrowUp":3,"ArrowDown":"r"};
-  if(map[e.key]!==undefined){e.preventDefault();go(map[e.key]);}
+  if(map[e.key]===undefined)return;
+  e.preventDefault();
+  var score=map[e.key];
+  var arena=document.getElementById("arena");
+  var cards=arena.querySelectorAll(".pcard");
+  var top=null;
+  for(var i=cards.length-1;i>=0;i--){
+    if(cards[i].style.opacity!=="0.4"&&cards[i].style.pointerEvents!=="none"){top=cards[i];break;}
+  }
+  if(!top&&cards.length)top=cards[cards.length-1];
+  if(!top)return;
+  var dirs={1:"lt",2:"rt",3:"up","r":"dn"};
+  fly(top,dirs[score],score);
 });
 
 // ── Commit ────────────────────────────────────────────────────────
