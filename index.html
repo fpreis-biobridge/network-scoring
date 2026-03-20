@@ -144,13 +144,13 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(79,124,255,.08),transparent 70%),var(--bg)}
 .done-ttl{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--txt)}
 .done-sub{color:var(--muted);max-width:300px;line-height:1.7;font-size:.88rem}
-.done-stats{display:flex;gap:0;background:var(--surf);border:1px solid var(--bdr);
-  border-radius:14px;overflow:hidden}
-.dstat{display:flex;flex-direction:column;align-items:center;gap:5px;
-  padding:22px 26px;border-right:1px solid var(--bdr)}
-.dstat:last-child{border-right:none}
-.dstat-n{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--txt)}
-.dstat-l{font-size:.66rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.done-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:var(--bdr);border:1px solid var(--bdr);
+  border-radius:14px;overflow:hidden;width:100%;max-width:320px}
+.dstat{display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:24px 20px;background:var(--surf)}
+.dstat-n{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--txt)}
+.dstat-l{font-size:.65rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 
 /* ── Toast ─────────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
@@ -332,10 +332,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   <div class="done-ttl">All done</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
   <div class="done-stats">
-    <div><div class="dstat-n" id="dn-loose">0</div><div class="dstat-l">👋 Loose</div></div>
-    <div><div class="dstat-n" id="dn-pro">0</div><div class="dstat-l">🤝 Pro</div></div>
-    <div><div class="dstat-n" id="dn-strong">0</div><div class="dstat-l">⭐ Strong</div></div>
-    <div><div class="dstat-n" id="dn-rem">0</div><div class="dstat-l">🗑️ Removed</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-loose">0</div><div class="dstat-l">👋 Loose</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-pro">0</div><div class="dstat-l">🤝 Professional</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-strong">0</div><div class="dstat-l">⭐ Strong</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-rem">0</div><div class="dstat-l">🗑️ Removed</div></div>
   </div>
 </div>
 
@@ -438,9 +438,19 @@ var obStep=0;
 // Dot element IDs per step: each step has its own set prefixed d0x,d1x etc
 var dotIds=[[("d0"),("d1"),("d2"),("d3")],[("d10"),("d11"),("d12"),("d13")],[("d20"),("d21"),("d22"),("d23")],[("d30"),("d31"),("d32"),("d33")]];
 function obGo(n){
+  // Hide current step and clear its dots
   document.getElementById("ob"+obStep).classList.add("off");
+  [0,10,20,30].forEach(function(p){
+    var el=document.getElementById("d"+(p+obStep));
+    if(el) el.classList.remove("on");
+  });
   obStep=Math.max(0,Math.min(3,n));
+  // Show new step and light its dots
   document.getElementById("ob"+obStep).classList.remove("off");
+  [0,10,20,30].forEach(function(p){
+    var el=document.getElementById("d"+(p+obStep));
+    if(el) el.classList.add("on");
+  });
 }
 
 // ── SharePoint ────────────────────────────────────────────────────
@@ -563,14 +573,10 @@ function buildCard(c){
   el.className="pcard";
   var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
   el.innerHTML=
-    '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:0">'+
-      '<div class="pavatar">'+ini+'</div>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
-        '<div class="ppos">'+(c.Position||"—")+'</div>'+
-        '<div class="pcoy"><div class="pcoy-dot"></div>'+(c.Company||"—")+'</div>'+
-      '</div>'+
-    '</div>'+
+    '<div class="pavatar" style="margin-bottom:12px">'+ini+'</div>'+
+    '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
+    '<div class="ppos">'+(c.Position||"—")+'</div>'+
+    '<div class="pcoy"><div class="pcoy-dot"></div>'+(c.Company||"—")+'</div>'+
     '<div class="pdiv"></div>'+
     '<div class="ptags">'+
       (c.target_account?'<span class="ptag tgt">🎯 Priority</span>':'')+
