@@ -89,7 +89,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 /* Arena: fills remaining space, card centred, hints at edges */
 .arena{flex:1;position:relative;display:flex;align-items:center;
-  justify-content:center;overflow:hidden;min-height:0}
+  justify-content:center;overflow:hidden;min-height:0;touch-action:none}
 
 /* Hint labels around card — no buttons, just subtle text+icon */
 .hint{position:absolute;display:flex;flex-direction:column;align-items:center;
@@ -105,7 +105,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 /* Profile card */
 .pcard{width:var(--cw);background:var(--surf);border:1px solid var(--bdr);
   border-radius:20px;padding:20px 18px 16px;position:absolute;cursor:grab;
-  box-shadow:0 8px 40px rgba(0,0,0,.45);user-select:none;will-change:transform;z-index:1}
+  box-shadow:0 8px 40px rgba(0,0,0,.45);user-select:none;will-change:transform;
+  z-index:1;touch-action:none;-webkit-user-select:none}
 .pcard:active{cursor:grabbing}
 .pbadge{display:inline-flex;align-items:center;gap:6px;
   background:rgba(79,124,255,.15);border:1px solid rgba(79,124,255,.3);
@@ -230,17 +231,31 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
           <span style="font-size:1.3rem">👋</span>
           <span style="font-size:.78rem;color:var(--lt);font-weight:600">Loose</span>
         </div>
-        <!-- Centre: crosshair arrows, no box -->
-        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative">
-          <!-- vertical arrow -->
-          <svg width="32" height="90" viewBox="0 0 32 90" style="position:absolute">
-            <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="rgba(255,255,255,0.3)"/></marker>
-            <marker id="at" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="rgba(255,255,255,0.3)"/></marker></defs>
-            <line x1="16" y1="8" x2="16" y2="82" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-start="url(#at)" marker-end="url(#ah)"/>
-          </svg>
-          <!-- horizontal arrow -->
-          <svg width="100" height="32" viewBox="0 0 100 32" style="position:absolute">
-            <line x1="8" y1="16" x2="92" y2="16" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-start="url(#at)" marker-end="url(#ah)"/>
+        <!-- Centre: clean crosshair, single SVG, solid arrowheads -->
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <defs>
+              <marker id="a1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+                <path d="M0 0L8 4L0 8Z" fill="#555566"/>
+              </marker>
+              <marker id="a2" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+                <path d="M8 0L0 4L8 8Z" fill="#555566"/>
+              </marker>
+              <marker id="a3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+                <path d="M0 0L8 4L0 8Z" fill="#555566"/>
+              </marker>
+              <marker id="a4" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+                <path d="M8 0L0 4L8 8Z" fill="#555566"/>
+              </marker>
+            </defs>
+            <!-- vertical: up arrow -->
+            <line x1="45" y1="42" x2="45" y2="6" stroke="#555566" stroke-width="1.5" marker-end="url(#a1)"/>
+            <!-- vertical: down arrow -->
+            <line x1="45" y1="48" x2="45" y2="84" stroke="#555566" stroke-width="1.5" marker-end="url(#a3)"/>
+            <!-- horizontal: left arrow -->
+            <line x1="43" y1="45" x2="7" y2="45" stroke="#555566" stroke-width="1.5" marker-end="url(#a2)"/>
+            <!-- horizontal: right arrow -->
+            <line x1="47" y1="45" x2="83" y2="45" stroke="#555566" stroke-width="1.5" marker-end="url(#a3)"/>
           </svg>
         </div>
         <div style="background:var(--surf);border:1px solid rgba(79,124,255,.4);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
@@ -292,7 +307,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 <div id="s-score" class="screen off">
   <div class="sc-hdr">
     <div><div class="sc-nm" id="sc-name">—</div><div class="sc-sub">Scoring your connections</div></div>
-    <div class="sc-ct"><div><strong id="sc-scored">0</strong> scored</div><div><strong id="sc-left">0</strong> remaining</div></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="sc-ct"><div><strong id="sc-scored">0</strong> scored</div><div><strong id="sc-left">0</strong> remaining</div></div>
+      <button onclick="undo()" title="Undo last score" style="background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:7px 10px;color:var(--muted);cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bdr)'">↩ Undo</button>
+    </div>
   </div>
   <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
   <div class="arena" id="arena">
@@ -300,6 +318,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div class="hint" id="h-dn"><div class="hint-ico">🗑️</div><div class="hint-lbl" style="color:var(--dn)">Remove</div></div>
     <div class="hint" id="h-lt"><div class="hint-ico">👋</div><div class="hint-lbl" style="color:var(--lt)">Loose</div></div>
     <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl" style="color:var(--rt)">Professional</div></div>
+  </div>
+  <div style="padding:8px 0 12px;font-size:.65rem;color:var(--surf2);text-align:center;flex-shrink:0;letter-spacing:.03em">
+    On desktop: arrow keys or click a side of the card
   </div>
 </div>
 
@@ -334,7 +355,7 @@ var msalCfg = {
 var msalApp = (typeof msal!=="undefined") ? new msal.PublicClientApplication(msalCfg) : null;
 
 // ── State ─────────────────────────────────────────────────────────
-var S = {user:null,token:null,queue:[],scores:{},idx:0,total:0,siteId:null,listId:null};
+var S = {user:null,token:null,queue:[],scores:{},idx:0,total:0,siteId:null,listId:null,history:[]};
 
 // ── Helpers ───────────────────────────────────────────────────────
 function show(id){
@@ -534,7 +555,12 @@ function buildCard(c){
   var el=document.createElement("div");
   el.className="pcard";
   var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
+  // Click zones: invisible divs covering each edge of the card
   el.innerHTML=
+    '<div onclick="go(3)" style="position:absolute;top:0;left:15%;width:70%;height:28%;cursor:pointer;z-index:10"></div>'+
+    '<div onclick="go(\'r\')" style="position:absolute;bottom:0;left:15%;width:70%;height:28%;cursor:pointer;z-index:10"></div>'+
+    '<div onclick="go(1)" style="position:absolute;top:15%;left:0;width:25%;height:70%;cursor:pointer;z-index:10"></div>'+
+    '<div onclick="go(2)" style="position:absolute;top:15%;right:0;width:25%;height:70%;cursor:pointer;z-index:10"></div>'+
     (c.target_account?'<div class="pbadge tgt">🎯 '+c.target_account+'</div>':'<div class="pbadge">Network</div>')+
     '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:0">'+
       '<div class="pavatar">'+ini+'</div>'+
@@ -601,23 +627,46 @@ function fly(card,dir,score){
   setTimeout(function(){commit(score);card.remove();render();},360);
 }
 
+function go(score){
+  if(document.getElementById("s-score").classList.contains("off"))return;
+  var cards=document.getElementById("arena").querySelectorAll(".pcard");
+  var top=null;
+  for(var i=0;i<cards.length;i++){if(cards[i].style.zIndex!=="0"&&cards[i].style.opacity!=="0.4"){top=cards[i];break;}}
+  if(!top&&cards.length)top=cards[cards.length-1];
+  if(!top)return;
+  var dirs={1:"lt",2:"rt",3:"up","r":"dn"};
+  fly(top,dirs[score],score);
+}
+
 // Keyboard
 document.addEventListener("keydown",function(e){
   if(document.getElementById("s-score").classList.contains("off"))return;
   var map={"ArrowLeft":1,"ArrowRight":2,"ArrowUp":3,"ArrowDown":"r"};
-  if(map[e.key]!==undefined){e.preventDefault();fly(document.querySelector(".pcard[style*='z-index'],.pcard"),{1:"lt",2:"rt",3:"up","r":"dn"}[map[e.key]],map[e.key]);}
+  if(map[e.key]!==undefined){e.preventDefault();go(map[e.key]);}
 });
 
 // ── Commit ────────────────────────────────────────────────────────
 function commit(score){
   if(S.idx>=S.queue.length)return;
   var c=S.queue[S.idx],today=new Date().toISOString().split("T")[0];
+  S.history.push({uid:c.unique_id,idx:S.idx});
   S.scores[c.unique_id]={score:score,score_date:today};
   toast({1:"Loose 👋",2:"Professional 🤝",3:"Strong ⭐","r":"Removed 🗑️"}[score]||String(score));
   if(S.token)saveScore(c.unique_id,score,today);
   localStorage.setItem("bb_"+S.user.contributor,JSON.stringify(S.scores));
   S.idx++;
   updateProg();
+}
+
+function undo(){
+  if(!S.history.length){toast("Nothing to undo");return;}
+  var last=S.history.pop();
+  delete S.scores[last.uid];
+  S.idx=last.idx;
+  localStorage.setItem("bb_"+S.user.contributor,JSON.stringify(S.scores));
+  updateProg();
+  render();
+  toast("Undone ↩");
 }
 
 // ── Progress ──────────────────────────────────────────────────────
