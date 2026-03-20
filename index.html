@@ -241,11 +241,14 @@ const msalConfig = {
   cache: { cacheLocation: "sessionStorage" }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+// Guard: only instantiate MSAL if the library loaded successfully
+const msalInstance = (typeof msal !== "undefined")
+  ? new msal.PublicClientApplication(msalConfig)
+  : null;
 const SP_SCOPES = ["https://biobridgepartners.sharepoint.com/.default"];
 
 // ── State ─────────────────────────────────────────────────────────
-const S = {
+var S = {
   user: null, token: null,
   queue: [], scores: {},
   currentIdx: 0, totalToScore: 0,
