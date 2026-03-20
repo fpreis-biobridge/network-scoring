@@ -19,7 +19,7 @@
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;transition:opacity .35s ease,transform .35s ease}
-.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}.onboard-body.hidden{display:none}
 #screen-auth{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15) 0%,transparent 70%),var(--bg)}
 .auth-logo{font-family:'DM Serif Display',serif;font-size:2.2rem;letter-spacing:-.5px;margin-bottom:8px;background:linear-gradient(135deg,#fff 0%,#8b91a8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .auth-sub{color:var(--muted);font-size:.95rem;margin-bottom:48px;text-align:center}
@@ -28,12 +28,12 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .btn-msft:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .btn-msft:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .msft-icon{width:20px;height:20px;flex-shrink:0}
-#screen-onboarding{gap:0;padding:32px 24px;justify-content:flex-start;overflow:hidden;height:100%}
-.onboard-header{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-top:12px}
+#screen-onboarding{gap:0;padding:0;justify-content:flex-start;overflow:hidden}
+.onboard-header{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-top:32px}
 .onboard-step-dots{display:flex;gap:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s}
 .dot.active{background:var(--accent)}
-.onboard-body{width:100%;max-width:420px;flex:1}
+.onboard-body{width:100%;max-width:420px;flex:1;padding:0 24px 32px;overflow-y:auto;height:100%}
 .onboard-title{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:16px}
 .onboard-text{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:24px}
 .score-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
@@ -133,69 +133,86 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 </div>
 
 <div id="screen-onboarding" class="screen hidden">
-  <div class="onboard-header">
-    <div class="onboard-step-dots">
+  <div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-top:12px;flex-shrink:0">
+    <div style="display:flex;gap:6px" id="step-dots">
       <div class="dot active" id="dot-0"></div>
       <div class="dot" id="dot-1"></div>
       <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
     </div>
     <button class="btn-secondary" onclick="skipOnboarding()" style="padding:6px 14px;font-size:.8rem">Skip</button>
   </div>
 
-  <div class="onboard-body" id="onboard-step-0">
+  <!-- Step 0: Purpose -->
+  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;overflow-y:auto" id="onboard-step-0">
     <div class="onboard-title">Map your<br><em>network strength</em></div>
-    <p class="onboard-text">Biobridge is building an interactive map of our collective network across the life science industry. Score each contact by the strength of your personal relationship. Takes 30–60 min and can be paused and resumed.</p>
-    <div class="score-cards">
-      <div class="score-card"><div class="score-icon" style="background:rgba(245,158,11,.15)">🤝</div><div class="score-card-text"><h4>1 · Loose</h4><p>Connected but little interaction. They may not remember you well.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(79,124,255,.15)">💼</div><div class="score-card-text"><h4>2 · Professional</h4><p>Worked together or had meaningful exchanges. Would respond to a message.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(34,197,94,.15)">⭐</div><div class="score-card-text"><h4>3 · Strong</h4><p>Would pick up the phone. Trust exists. Could ask for a warm intro.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div class="score-card-text"><h4>Remove</h4><p>Not relevant or misclassified. Removes from your scoring queue.</p></div></div>
-    </div>
-    <button class="btn-primary w-full" onclick="nextOnboardStep()">Next →</button>
+    <p class="onboard-text">Biobridge is building an interactive map of our collective network across the life science industry. Your task is to score the strength of your personal relationships with each contact shown.</p>
+    <p class="onboard-text">The profiles you will see are drawn from the LinkedIn connections you submitted. They have been filtered for life science relevance, so you are only scoring a focused subset — not your entire network.</p>
+    <p class="onboard-text" style="font-size:.85rem;color:var(--muted)">This takes around 30–60 minutes and can be paused and resumed at any time. Your progress is saved automatically after each card.</p>
+    <button class="btn-primary w-full" onclick="nextOnboardStep()" style="margin-top:auto">Next →</button>
   </div>
 
-  <div class="onboard-body hidden" id="onboard-step-1">
-    <div class="onboard-title">Swipe to<br><em>score</em></div>
-    <p class="onboard-text">On mobile swipe the card. On desktop use the arrow keys on your keyboard.</p>
-    <div style="display:grid;grid-template-columns:1fr 80px 1fr;grid-template-rows:80px 80px 80px;gap:8px;max-width:320px;margin:0 auto 24px;align-items:center;justify-items:center">
-      <div></div>
-      <div class="gesture-item" style="width:80px;height:80px;padding:8px">
-        <div style="font-size:1.4rem">⭐</div>
-        <div style="font-size:.7rem;color:var(--up);font-weight:600">Up</div>
-        <div style="font-size:.65rem;color:var(--muted)">Strong</div>
-      </div>
-      <div></div>
-      <div class="gesture-item" style="width:80px;height:80px;padding:8px">
-        <div style="font-size:1.4rem">🤝</div>
-        <div style="font-size:.7rem;color:var(--left);font-weight:600">Left</div>
-        <div style="font-size:.65rem;color:var(--muted)">Loose</div>
-      </div>
-      <div style="width:48px;height:48px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem">🃏</div>
-      <div class="gesture-item" style="width:80px;height:80px;padding:8px">
-        <div style="font-size:1.4rem">💼</div>
-        <div style="font-size:.7rem;color:var(--right);font-weight:600">Right</div>
-        <div style="font-size:.65rem;color:var(--muted)">Professional</div>
-      </div>
-      <div></div>
-      <div class="gesture-item" style="width:80px;height:80px;padding:8px">
-        <div style="font-size:1.4rem">🗑️</div>
-        <div style="font-size:.7rem;color:var(--down);font-weight:600">Down</div>
-        <div style="font-size:.65rem;color:var(--muted)">Remove</div>
-      </div>
-      <div></div>
+  <!-- Step 1: Scoring criteria -->
+  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;overflow-y:auto" id="onboard-step-1" style="display:none;flex-direction:column">
+    <div class="onboard-title">How to<br><em>score</em></div>
+    <p class="onboard-text">Rate each connection based on the strength of your personal relationship using the four levels below.</p>
+    <div class="score-cards">
+      <div class="score-card"><div class="score-icon" style="background:rgba(245,158,11,.15)">🤝</div><div class="score-card-text"><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div></div>
+      <div class="score-card"><div class="score-icon" style="background:rgba(79,124,255,.15)">💼</div><div class="score-card-text"><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div></div>
+      <div class="score-card"><div class="score-icon" style="background:rgba(34,197,94,.15)">⭐</div><div class="score-card-text"><h4>3 · Strong</h4><p>You would pick up the phone for each other. There is trust, and you could ask for a warm introduction.</p></div></div>
+      <div class="score-card"><div class="score-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div class="score-card-text"><h4>Remove</h4><p>The contact is not relevant or has been misclassified. This removes them from your scoring queue.</p></div></div>
     </div>
-    <p class="onboard-text" style="font-size:.82rem">💡 Your connections at our priority accounts are shown first.</p>
-    <div style="display:flex;gap:10px;width:100%;max-width:420px">
+    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
       <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
       <button class="btn-primary" style="flex:1" onclick="nextOnboardStep()">Next →</button>
     </div>
   </div>
 
-  <div class="onboard-body hidden" id="onboard-step-2">
-    <div class="onboard-title">Ready to<br><em>start?</em></div>
-    <p class="onboard-text">You are signed in as <strong id="onboard-user-display">—</strong>. You will only see your own connections — each person scores independently.</p>
-    <p class="onboard-text" style="font-size:.82rem">Your progress saves automatically after each card. Close and return any time — you will continue from where you left off.</p>
-    <div style="display:flex;gap:10px;width:100%;max-width:420px">
+  <!-- Step 2: Gestures (compass) -->
+  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column" id="onboard-step-2" style="display:none;flex-direction:column">
+    <div class="onboard-title">Swipe to<br><em>score</em></div>
+    <p class="onboard-text">On mobile, swipe the card in the direction shown below. On desktop, use the arrow keys on your keyboard. You can also use the buttons at the bottom of the screen.</p>
+    <div style="display:grid;grid-template-columns:1fr 88px 1fr;grid-template-rows:88px 88px 88px;gap:10px;max-width:300px;margin:0 auto 24px;align-items:center;justify-items:center">
+      <div></div>
+      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
+        <div style="font-size:1.5rem">⭐</div>
+        <div style="font-size:.72rem;color:var(--up);font-weight:600;margin-top:4px">Swipe up</div>
+        <div style="font-size:.65rem;color:var(--muted)">Strong</div>
+      </div>
+      <div></div>
+      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
+        <div style="font-size:1.5rem">🤝</div>
+        <div style="font-size:.72rem;color:var(--left);font-weight:600;margin-top:4px">Swipe left</div>
+        <div style="font-size:.65rem;color:var(--muted)">Loose</div>
+      </div>
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🃏</div>
+      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
+        <div style="font-size:1.5rem">💼</div>
+        <div style="font-size:.72rem;color:var(--right);font-weight:600;margin-top:4px">Swipe right</div>
+        <div style="font-size:.65rem;color:var(--muted)">Professional</div>
+      </div>
+      <div></div>
+      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
+        <div style="font-size:1.5rem">🗑️</div>
+        <div style="font-size:.72rem;color:var(--down);font-weight:600;margin-top:4px">Swipe down</div>
+        <div style="font-size:.65rem;color:var(--muted)">Remove</div>
+      </div>
+      <div></div>
+    </div>
+    <p class="onboard-text" style="font-size:.82rem">💡 Your connections at our priority accounts are shown first.</p>
+    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
+      <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
+      <button class="btn-primary" style="flex:1" onclick="nextOnboardStep()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Ready -->
+  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column" id="onboard-step-3" style="display:none;flex-direction:column">
+    <div class="onboard-title">Ready to<br><em>get started?</em></div>
+    <p class="onboard-text">You are signed in as <strong id="onboard-user-display">—</strong>.</p>
+    <p class="onboard-text">You will only see your own connections. Each person scores their network independently, and the results are combined into a single shared map.</p>
+    <p class="onboard-text" style="font-size:.85rem;color:var(--muted)">If you need to stop at any point, simply close the app. Your progress is saved and you will continue from where you left off next time.</p>
+    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
       <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
       <button class="btn-primary" style="flex:1" onclick="startScoring()">Start scoring →</button>
     </div>
@@ -446,13 +463,17 @@ async function loadCSVFromSharePoint() {
 let onboardStep = 0;
 function nextOnboardStep() { setStep(onboardStep + 1); }
 function prevOnboardStep() { setStep(onboardStep - 1); }
-function skipOnboarding()  { setStep(2); }
+function skipOnboarding()  { setStep(3); }
 function setStep(n) {
-  document.getElementById(`onboard-step-${onboardStep}`).classList.add("hidden");
-  document.getElementById(`dot-${onboardStep}`).classList.remove("active");
-  onboardStep = Math.max(0, Math.min(2, n));
-  document.getElementById(`onboard-step-${onboardStep}`).classList.remove("hidden");
-  document.getElementById(`dot-${onboardStep}`).classList.add("active");
+  var prev = document.getElementById("onboard-step-"+onboardStep);
+  var prevDot = document.getElementById("dot-"+onboardStep);
+  if(prev) prev.style.display = "none";
+  if(prevDot) prevDot.classList.remove("active");
+  onboardStep = Math.max(0, Math.min(3, n));
+  var next = document.getElementById("onboard-step-"+onboardStep);
+  var nextDot = document.getElementById("dot-"+onboardStep);
+  if(next) next.style.display = "flex";
+  if(nextDot) nextDot.classList.add("active");
 }
 
 // ── Start scoring ────────────────────────────────────────────────
