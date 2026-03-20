@@ -15,7 +15,7 @@
   --bg:#0f1117;--surf:#16181f;--surf2:#1e2029;--bdr:rgba(255,255,255,0.06);
   --txt:#e8eaf0;--muted:#606472;--soft:#9095a8;
   --acc:#4f7cff;--acc2:#7c5cfc;
-  --cw:min(320px,64vw)
+  --cw:min(360px,64vw)
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;
@@ -83,8 +83,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 /* ── SCORING ──────────────────────────────────────────────────────── */
 #s-score{justify-content:flex-start;padding:0;align-items:stretch}
-.sc-hdr{width:100%;padding:14px 20px 10px;display:flex;justify-content:space-between;
+.sc-hdr{width:100%;max-width:900px;margin:0 auto;padding:14px 20px 10px;display:flex;justify-content:space-between;
   align-items:center;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.sc-hdr-wrap{width:100%;border-bottom:1px solid var(--bdr);flex-shrink:0}
 .sc-nm{font-weight:500;font-size:.9rem;color:var(--txt)}
 .sc-sub{font-size:.7rem;color:var(--muted);margin-top:1px}
 .sc-ct{text-align:right;font-size:.78rem;color:var(--muted)}
@@ -94,7 +95,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 .arena{flex:1;position:relative;display:flex;align-items:center;
   justify-content:center;overflow:hidden;touch-action:none;
-  width:100%;height:calc(100vh - 100px)}
+  width:100%;max-width:900px;align-self:center;height:calc(100vh - 100px)}
 
 /* Hints: very subtle, just text */
 .hint{position:absolute;display:flex;flex-direction:column;align-items:center;
@@ -119,6 +120,20 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;
   align-items:center;justify-content:center;font-family:'DM Serif Display',serif;
   font-size:1.1rem;color:#fff;flex-shrink:0}
+
+/* Desktop: wider card, avatar beside name */
+@media(min-width:600px){
+  :root{--cw:min(400px,60vw)}
+  .card-top{display:flex;gap:14px;align-items:flex-start}
+  .card-top .pavatar{margin-bottom:0}
+  .card-top-text{flex:1;min-width:0}
+}
+/* Mobile: avatar above name */
+@media(max-width:599px){
+  .card-top{display:flex;flex-direction:column}
+  .card-top .pavatar{margin-bottom:12px}
+  .card-top-text{width:100%}
+}
 .pname{font-family:'DM Serif Display',serif;font-size:1.15rem;line-height:1.2;
   margin-bottom:3px;color:var(--txt)}
 .ppos{font-size:.78rem;color:var(--muted);line-height:1.4;margin-bottom:8px}
@@ -152,7 +167,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 .dstat-l{font-size:.63rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 
 /* ── Toast ─────────────────────────────────────────────────────────── */
-.toast{position:fixed;bottom:108px;left:50%;transform:translateX(-50%) translateY(10px);
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(10px);
   background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;
   padding:8px 16px;font-size:.8rem;color:var(--soft);opacity:0;
   transition:opacity .25s,transform .25s;pointer-events:none;z-index:100;white-space:nowrap}
@@ -290,10 +305,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 <!-- ══ SCORING ══════════════════════════════════════════════════════ -->
 <div id="s-score" class="screen off">
-  <div class="sc-hdr">
+  <div class="sc-hdr-wrap"><div class="sc-hdr">
     <div><div class="sc-nm" id="sc-name">—</div><div class="sc-sub">Scoring your connections</div></div>
     <div class="sc-ct"><div><strong id="sc-scored">0</strong> scored</div><div><strong id="sc-left">0</strong> remaining</div></div>
-  </div>
+  </div></div>
   <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
   <div style="text-align:right;padding:5px 20px 2px;flex-shrink:0">
     <button onclick="undo()" style="background:transparent;border:none;padding:4px 0;color:var(--muted);cursor:pointer;font-size:.7rem;font-family:'DM Sans',sans-serif;letter-spacing:.04em;text-transform:uppercase;transition:color .2s" onmouseover="this.style.color='var(--soft)'" onmouseout="this.style.color='var(--muted)'">↩ Undo</button>
@@ -534,7 +549,8 @@ async function startScoring(){
     S.queue=conns.filter(function(c){return !S.scores[c.unique_id];});
     S.total=S.queue.length;
     S.idx=0;
-    document.getElementById("sc-name").textContent=contrib.charAt(0).toUpperCase()+contrib.slice(1);
+    var displayFirst = S.user.name==="Test Mode" ? "Test Mode" : (S.user.name||contrib).split(" ")[0];
+    document.getElementById("sc-name").textContent=displayFirst;
     show("s-score");
     updateProg();
     render();
@@ -565,10 +581,14 @@ function buildCard(c){
   el.className="pcard";
   var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
   el.innerHTML=
-    '<div class="pavatar" style="margin-bottom:12px">'+ini+'</div>'+
-    '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
-    '<div class="ppos">'+(c.Position||"—")+'</div>'+
-    '<div class="pcoy"><div class="pcoy-dot"></div>'+(c.Company||"—")+'</div>'+
+    '<div class="card-top">'+
+      '<div class="pavatar">'+ini+'</div>'+
+      '<div class="card-top-text">'+
+        '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
+        '<div class="ppos">'+(c.Position||"—")+'</div>'+
+        '<div class="pcoy"><div class="pcoy-dot"></div>'+(c.Company||"—")+'</div>'+
+      '</div>'+
+    '</div>'+
     '<div class="pdiv"></div>'+
     '<div class="ptags">'+
       (c.target_account?'<span class="ptag tgt">🎯 Priority</span>':'')+
