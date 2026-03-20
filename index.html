@@ -12,698 +12,723 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:rgba(255,255,255,0.08);
-  --text:#f0f2f8;--muted:#8b91a8;--accent:#4f7cff;--accent2:#7c5cfc;
-  --up:#22c55e;--right:#4f7cff;--left:#f59e0b;--down:#ef4444;
-  --radius:20px;--card-w:min(380px,90vw)
+  --bg:#0f1117;--surf:#1a1d27;--surf2:#22263a;--bdr:rgba(255,255,255,0.08);
+  --txt:#f0f2f8;--muted:#8b91a8;--acc:#4f7cff;--acc2:#7c5cfc;
+  --up:#22c55e;--rt:#4f7cff;--lt:#f59e0b;--dn:#ef4444;
+  --r:20px;--cw:min(360px,88vw)
 }
-html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;transition:opacity .35s ease,transform .35s ease}
-.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}.onboard-body.hidden{display:none}
-#screen-auth{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15) 0%,transparent 70%),var(--bg)}
-.auth-logo{font-family:'DM Serif Display',serif;font-size:2.2rem;letter-spacing:-.5px;margin-bottom:8px;background:linear-gradient(135deg,#fff 0%,#8b91a8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.auth-sub{color:var(--muted);font-size:.95rem;margin-bottom:48px;text-align:center}
-.auth-error{color:#ef4444;font-size:.82rem;margin-top:16px;text-align:center;max-width:300px;line-height:1.5;display:none}
-.btn-msft{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;border:none;border-radius:12px;padding:14px 28px;font-size:.95rem;font-weight:500;cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:'DM Sans',sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
+  font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── Shared ─────────────────────────────────────────────────────── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;padding:0;transition:opacity .3s,transform .3s}
+.screen.off{opacity:0;pointer-events:none;transform:translateY(16px)}
+
+.btn-pri{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  color:#fff;border:none;border-radius:14px;padding:15px;font-size:1rem;
+  font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:opacity .2s,transform .15s;flex-shrink:0}
+.btn-pri:hover{opacity:.88;transform:translateY(-1px)}
+.btn-pri:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-sec{background:transparent;color:var(--muted);border:1px solid var(--bdr);
+  border-radius:14px;padding:14px;font-size:.9rem;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s,color .2s;
+  flex-shrink:0}
+.btn-sec:hover{border-color:var(--acc);color:var(--txt)}
+
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
+.dot.on{background:var(--acc)}
+
+.score-card{display:flex;align-items:flex-start;gap:14px;background:var(--surf);
+  border:1px solid var(--bdr);border-radius:14px;padding:14px 16px}
+.score-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.score-card h4{font-size:.9rem;font-weight:600;margin-bottom:3px}
+.score-card p{font-size:.8rem;color:var(--muted);line-height:1.45}
+
+.sname{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:14px}
+.sbody{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:16px}
+
+/* ── Auth ──────────────────────────────────────────────────────── */
+#s-auth{justify-content:center;align-items:center;gap:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.15) 0%,transparent 70%),var(--bg)}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:2.4rem;
+  background:linear-gradient(135deg,#fff,#8b91a8);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;margin-bottom:8px}
+.auth-sub{color:var(--muted);font-size:.95rem;margin-bottom:44px;text-align:center}
+.btn-msft{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;
+  border:none;border-radius:12px;padding:14px 28px;font-size:.95rem;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.3);
+  transition:transform .15s,box-shadow .15s}
 .btn-msft:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .btn-msft:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .msft-icon{width:20px;height:20px;flex-shrink:0}
-#screen-onboarding{gap:0;padding:0;justify-content:flex-start;overflow:hidden}
-.onboard-header{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-top:32px}
-.onboard-step-dots{display:flex;gap:6px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s}
-.dot.active{background:var(--accent)}
-.onboard-body{width:100%;max-width:420px;flex:1;padding:0 24px 32px;overflow-y:auto;height:100%}
-.onboard-title{font-family:'DM Serif Display',serif;font-size:1.8rem;line-height:1.2;margin-bottom:16px}
-.onboard-text{color:var(--muted);line-height:1.65;font-size:.95rem;margin-bottom:24px}
-.score-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
-.score-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
-.score-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
-.score-card-text h4{font-size:.9rem;font-weight:600;margin-bottom:2px}
-.score-card-text p{font-size:.8rem;color:var(--muted);line-height:1.4}
-.gesture-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
-.gesture-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
-.gesture-arrow{font-size:1.6rem}
-.gesture-label{font-size:.75rem;color:var(--muted);line-height:1.3}
-.gesture-label strong{display:block;font-size:.85rem;color:var(--text);margin-bottom:2px}
-.btn-primary{width:100%;max-width:420px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:14px;padding:16px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;font-family:'DM Sans',sans-serif;margin-top:auto}
-.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:.9rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s,color .2s}
-.btn-secondary:hover{border-color:var(--accent);color:var(--text)}
-#screen-scoring{justify-content:space-between;padding:0}
-.scoring-header{width:100%;padding:16px 24px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg);position:relative;z-index:10}
-.scoring-user-name{font-weight:600;font-size:.95rem}
-.scoring-user-sub{font-size:.75rem;color:var(--muted);margin-top:1px}
-.scoring-stats{text-align:right}
-.scoring-count{font-size:.85rem;color:var(--muted)}
-.scoring-count strong{color:var(--text)}
-.progress-bar-wrap{width:100%;height:3px;background:var(--border)}
-.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease}
-.hint-zone{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none;z-index:5;opacity:.35;transition:opacity .2s}
-.hint-zone.active{opacity:1}
-.hint-icon{font-size:1.6rem}
-.hint-label{font-size:.65rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-#hint-left{left:12px;top:50%;transform:translateY(-50%);color:var(--left)}
-#hint-right{right:12px;top:50%;transform:translateY(-50%);color:var(--right)}
-#hint-up{top:12px;left:50%;transform:translateX(-50%);color:var(--up)}
-#hint-down{bottom:12px;left:50%;transform:translateX(-50%);color:var(--down)}
-.card-arena{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.profile-card{width:var(--card-w);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px 24px;position:absolute;cursor:grab;box-shadow:0 8px 40px rgba(0,0,0,.4);user-select:none;will-change:transform}
-.profile-card:active{cursor:grabbing}
-.card-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(79,124,255,.15);border:1px solid rgba(79,124,255,.3);color:var(--accent);border-radius:20px;padding:4px 10px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
-.card-badge.target{background:rgba(124,92,252,.15);border-color:rgba(124,92,252,.3);color:var(--accent2)}
-.card-avatar{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff;margin-bottom:14px;flex-shrink:0}
-.card-name{font-family:'DM Serif Display',serif;font-size:1.35rem;line-height:1.2;margin-bottom:6px}
-.card-position{font-size:.85rem;color:var(--muted);line-height:1.4;margin-bottom:12px}
-.card-company{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:6px 10px;font-size:.8rem;font-weight:500}
-.card-company-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.card-divider{height:1px;background:var(--border);margin:16px 0}
-.card-meta{display:flex;gap:8px;flex-wrap:wrap}
-.card-tag{background:var(--surface2);border-radius:6px;padding:4px 8px;font-size:.72rem;color:var(--muted)}
-.card-tag.senior{color:#f59e0b}
-.swipe-overlay{position:absolute;inset:0;border-radius:var(--radius);opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
-.swipe-overlay-label{font-family:'DM Serif Display',serif;font-size:1.6rem;font-weight:700;padding:10px 20px;border-radius:12px;border:3px solid}
-.overlay-left .swipe-overlay-label{border-color:var(--left);color:var(--left);transform:rotate(15deg)}
-.overlay-right .swipe-overlay-label{border-color:var(--right);color:var(--right);transform:rotate(-15deg)}
-.overlay-up .swipe-overlay-label{border-color:var(--up);color:var(--up)}
-.overlay-down .swipe-overlay-label{border-color:var(--down);color:var(--down)}
-.action-buttons{width:100%;padding:16px 24px 28px;display:flex;align-items:center;justify-content:center;gap:16px;background:var(--bg);border-top:1px solid var(--border)}
-.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 0;width:72px;cursor:pointer;transition:transform .15s,border-color .2s;font-family:'DM Sans',sans-serif}
-.action-btn:hover{transform:translateY(-3px)}
-.action-btn:active{transform:translateY(0) scale(.96)}
-.action-btn .btn-icon{font-size:1.4rem}
-.action-btn .btn-lbl{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.action-btn.btn-1{border-color:rgba(245,158,11,.4)}.action-btn.btn-1:hover{border-color:var(--left)}
-.action-btn.btn-2{border-color:rgba(79,124,255,.4)}.action-btn.btn-2:hover{border-color:var(--right)}
-.action-btn.btn-3{border-color:rgba(34,197,94,.4);width:88px}.action-btn.btn-3:hover{border-color:var(--up)}
-.action-btn.btn-del{border-color:rgba(239,68,68,.3)}.action-btn.btn-del:hover{border-color:var(--down)}
-#screen-done{background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.1) 0%,transparent 70%),var(--bg);gap:16px;text-align:center}
-.done-icon{font-size:4rem;margin-bottom:8px}
-.done-title{font-family:'DM Serif Display',serif;font-size:2rem}
-.done-sub{color:var(--muted);max-width:300px;line-height:1.6}
-.done-stats{display:flex;gap:24px;margin:8px 0;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 28px}
-.done-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
-.done-stat-num{font-family:'DM Serif Display',serif;font-size:2rem}
-.done-stat-lbl{font-size:.75rem;color:var(--muted)}
-#screen-loading{gap:16px}
-.loading-spinner{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.auth-err{color:#ef4444;font-size:.82rem;margin-top:14px;text-align:center;
+  max-width:280px;line-height:1.5;display:none}
+
+/* ── Onboarding ─────────────────────────────────────────────────── */
+#s-onboard{justify-content:flex-start;align-items:center;padding:20px 24px 0}
+.ob-wrap{width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;
+  min-height:0;padding-bottom:24px}
+.ob-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:28px;flex-shrink:0}
+.ob-dots{display:flex;gap:6px}
+.ob-step{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+.ob-step.off{display:none}
+.ob-content{flex:1}
+.ob-nav{display:flex;gap:10px;padding-top:20px;flex-shrink:0}
+
+/* ── Scoring ────────────────────────────────────────────────────── */
+#s-score{justify-content:flex-start;padding:0}
+.sc-header{width:100%;padding:14px 20px 10px;display:flex;justify-content:space-between;
+  align-items:center;border-bottom:1px solid var(--bdr);background:var(--bg);flex-shrink:0}
+.sc-name{font-weight:600;font-size:.95rem}
+.sc-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
+.sc-count{font-size:.82rem;color:var(--muted);text-align:right}
+.sc-count strong{color:var(--txt)}
+.prog-wrap{width:100%;height:3px;background:var(--bdr);flex-shrink:0}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s}
+
+/* Arena: card in centre, hint icons at edges */
+.arena{flex:1;position:relative;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;min-height:0}
+
+/* Hint icons always visible around the card */
+.hint{position:absolute;display:flex;flex-direction:column;align-items:center;
+  gap:3px;pointer-events:none;z-index:2;opacity:.55;transition:opacity .15s}
+.hint.lit{opacity:1}
+.hint-ico{font-size:1.4rem}
+.hint-lbl{font-size:.6rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+#h-up  {top:14px; left:50%;transform:translateX(-50%);color:var(--up)}
+#h-dn  {bottom:14px;left:50%;transform:translateX(-50%);color:var(--dn)}
+#h-lt  {left:10px; top:50%;transform:translateY(-50%);color:var(--lt)}
+#h-rt  {right:10px;top:50%;transform:translateY(-50%);color:var(--rt)}
+
+/* Profile card */
+.pcard{width:var(--cw);background:var(--surf);border:1px solid var(--bdr);
+  border-radius:var(--r);padding:22px 20px 18px;position:absolute;cursor:grab;
+  box-shadow:0 8px 40px rgba(0,0,0,.45);user-select:none;will-change:transform;z-index:1}
+.pcard:active{cursor:grabbing}
+.pbadge{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(79,124,255,.15);border:1px solid rgba(79,124,255,.3);
+  color:var(--acc);border-radius:20px;padding:3px 10px;font-size:.68rem;
+  font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+.pbadge.tgt{background:rgba(124,92,252,.15);border-color:rgba(124,92,252,.3);color:var(--acc2)}
+.pavatar{width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;
+  align-items:center;justify-content:center;font-family:'DM Serif Display',serif;
+  font-size:1.3rem;color:#fff;flex-shrink:0}
+.pname{font-family:'DM Serif Display',serif;font-size:1.25rem;line-height:1.2;margin-bottom:5px}
+.ppos{font-size:.82rem;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.pcoy{display:inline-flex;align-items:center;gap:6px;background:var(--surf2);
+  border-radius:8px;padding:5px 10px;font-size:.78rem;font-weight:500}
+.pcoy-dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.pdiv{height:1px;background:var(--bdr);margin:14px 0}
+.ptags{display:flex;gap:7px;flex-wrap:wrap}
+.ptag{background:var(--surf2);border-radius:6px;padding:3px 8px;font-size:.7rem;color:var(--muted)}
+.ptag.snr{color:#f59e0b}
+
+/* Swipe overlays */
+.sov{position:absolute;inset:0;border-radius:var(--r);opacity:0;
+  pointer-events:none;display:flex;align-items:center;justify-content:center}
+.sov-lbl{font-family:'DM Serif Display',serif;font-size:1.5rem;font-weight:700;
+  padding:9px 18px;border-radius:12px;border:3px solid}
+.sov-lt .sov-lbl{border-color:var(--lt);color:var(--lt);transform:rotate(15deg)}
+.sov-rt .sov-lbl{border-color:var(--rt);color:var(--rt);transform:rotate(-15deg)}
+.sov-up .sov-lbl{border-color:var(--up);color:var(--up)}
+.sov-dn .sov-lbl{border-color:var(--dn);color:var(--dn)}
+
+/* Action buttons below card — desktop fallback */
+.act-row{width:100%;padding:12px 20px 20px;display:flex;
+  justify-content:center;gap:12px;background:var(--bg);
+  border-top:1px solid var(--bdr);flex-shrink:0}
+.act-btn{display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--surf);border:1px solid var(--bdr);border-radius:14px;
+  padding:12px 0;width:68px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:transform .15s,border-color .2s}
+.act-btn:hover{transform:translateY(-3px)}
+.act-btn:active{transform:scale(.95)}
+.act-ico{font-size:1.3rem}
+.act-lbl{font-size:.6rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted)}
+.abt-lt{border-color:rgba(245,158,11,.4)}.abt-lt:hover{border-color:var(--lt)}
+.abt-rt{border-color:rgba(79,124,255,.4)}.abt-rt:hover{border-color:var(--rt)}
+.abt-up{border-color:rgba(34,197,94,.4);width:80px}.abt-up:hover{border-color:var(--up)}
+.abt-dn{border-color:rgba(239,68,68,.3)}.abt-dn:hover{border-color:var(--dn)}
+
+/* ── Done ───────────────────────────────────────────────────────── */
+#s-done{justify-content:center;align-items:center;gap:16px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.1) 0%,transparent 70%),var(--bg)}
+.done-ico{font-size:4rem;margin-bottom:4px}
+.done-ttl{font-family:'DM Serif Display',serif;font-size:2rem}
+.done-sub{color:var(--muted);max-width:300px;line-height:1.65;font-size:.95rem}
+.done-stats{display:flex;gap:24px;background:var(--surf);border:1px solid var(--bdr);
+  border-radius:16px;padding:18px 26px}
+.dstat{display:flex;flex-direction:column;align-items:center;gap:4px}
+.dstat-n{font-family:'DM Serif Display',serif;font-size:2rem}
+.dstat-l{font-size:.72rem;color:var(--muted)}
+
+/* ── Loading ─────────────────────────────────────────────────────── */
+#s-load{justify-content:center;align-items:center;gap:14px}
+.spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--bdr);
+  border-top-color:var(--acc);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:var(--muted);font-size:.9rem}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:.85rem;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:100;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.w-full{width:100%;max-width:420px}
+.load-txt{color:var(--muted);font-size:.9rem}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;
+  padding:9px 18px;font-size:.85rem;opacity:0;transition:opacity .25s,transform .25s;
+  pointer-events:none;z-index:100;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<div id="screen-auth" class="screen">
-  <div class="auth-logo">Biobridge</div>
+<!-- ══ AUTH ════════════════════════════════════════════════════════ -->
+<div id="s-auth" class="screen">
+  <div class="auth-logo">Biobridge Partners</div>
   <div class="auth-sub">Network Scoring · Sign in to continue</div>
-  <button class="btn-msft" id="btn-signin" onclick="signIn()">
+  <button class="btn-msft" id="btn-msft" onclick="signIn()">
     <svg class="msft-icon" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
     Sign in with Microsoft
   </button>
-  <div class="auth-error" id="auth-error"></div>
-  <p style="color:var(--muted);font-size:.75rem;margin-top:20px;text-align:center;max-width:280px;line-height:1.6">Only @biobridgepartners.com accounts are permitted access.</p>
-  <p style="color:var(--muted);font-size:.7rem;margin-top:24px">— or —</p>
-  <button onclick="devBypass()" style="margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;">
-    Continue as Florian (test mode)
-  </button>
+  <div class="auth-err" id="auth-err"></div>
+  <p style="color:var(--muted);font-size:.72rem;margin-top:16px;text-align:center;max-width:260px;line-height:1.6">Only @biobridgepartners.com accounts are permitted access.</p>
+  <p style="color:var(--muted);font-size:.7rem;margin-top:20px">— or —</p>
+  <button onclick="devBypass()" style="margin-top:8px;background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;">Test Mode</button>
 </div>
 
-<div id="screen-onboarding" class="screen hidden">
-  <div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-top:12px;flex-shrink:0">
-    <div style="display:flex;gap:6px" id="step-dots">
-      <div class="dot active" id="dot-0"></div>
-      <div class="dot" id="dot-1"></div>
-      <div class="dot" id="dot-2"></div>
-      <div class="dot" id="dot-3"></div>
-    </div>
-    <button class="btn-secondary" onclick="skipOnboarding()" style="padding:6px 14px;font-size:.8rem">Skip</button>
-  </div>
-
-  <!-- Step 0: Purpose -->
-  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;overflow-y:auto" id="onboard-step-0">
-    <div class="onboard-title">Map your<br><em>network strength</em></div>
-    <p class="onboard-text">Biobridge is building an interactive map of our collective network across the life science industry. Your task is to score the strength of your personal relationships with each contact shown.</p>
-    <p class="onboard-text">The profiles you will see are drawn from the LinkedIn connections you submitted. They have been filtered for life science relevance, so you are only scoring a focused subset — not your entire network.</p>
-    <p class="onboard-text" style="font-size:.85rem;color:var(--muted)">This takes around 30–60 minutes and can be paused and resumed at any time. Your progress is saved automatically after each card.</p>
-    <button class="btn-primary w-full" onclick="nextOnboardStep()" style="margin-top:auto">Next →</button>
-  </div>
-
-  <!-- Step 1: Scoring criteria -->
-  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;overflow-y:auto" id="onboard-step-1" style="display:none;flex-direction:column">
-    <div class="onboard-title">How to<br><em>score</em></div>
-    <p class="onboard-text">Rate each connection based on the strength of your personal relationship using the four levels below.</p>
-    <div class="score-cards">
-      <div class="score-card"><div class="score-icon" style="background:rgba(245,158,11,.15)">🤝</div><div class="score-card-text"><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(79,124,255,.15)">💼</div><div class="score-card-text"><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(34,197,94,.15)">⭐</div><div class="score-card-text"><h4>3 · Strong</h4><p>You would pick up the phone for each other. There is trust, and you could ask for a warm introduction.</p></div></div>
-      <div class="score-card"><div class="score-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div class="score-card-text"><h4>Remove</h4><p>The contact is not relevant or has been misclassified. This removes them from your scoring queue.</p></div></div>
-    </div>
-    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
-      <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
-      <button class="btn-primary" style="flex:1" onclick="nextOnboardStep()">Next →</button>
-    </div>
-  </div>
-
-  <!-- Step 2: Gestures (compass) -->
-  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column" id="onboard-step-2" style="display:none;flex-direction:column">
-    <div class="onboard-title">Swipe to<br><em>score</em></div>
-    <p class="onboard-text">On mobile, swipe the card in the direction shown below. On desktop, use the arrow keys on your keyboard. You can also use the buttons at the bottom of the screen.</p>
-    <div style="display:grid;grid-template-columns:1fr 88px 1fr;grid-template-rows:88px 88px 88px;gap:10px;max-width:300px;margin:0 auto 24px;align-items:center;justify-items:center">
-      <div></div>
-      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
-        <div style="font-size:1.5rem">⭐</div>
-        <div style="font-size:.72rem;color:var(--up);font-weight:600;margin-top:4px">Swipe up</div>
-        <div style="font-size:.65rem;color:var(--muted)">Strong</div>
+<!-- ══ ONBOARDING ══════════════════════════════════════════════════ -->
+<div id="s-onboard" class="screen off">
+  <div class="ob-wrap">
+    <div class="ob-header">
+      <div class="ob-dots">
+        <div class="dot on"  id="d0"></div>
+        <div class="dot"     id="d1"></div>
+        <div class="dot"     id="d2"></div>
+        <div class="dot"     id="d3"></div>
       </div>
-      <div></div>
-      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
-        <div style="font-size:1.5rem">🤝</div>
-        <div style="font-size:.72rem;color:var(--left);font-weight:600;margin-top:4px">Swipe left</div>
-        <div style="font-size:.65rem;color:var(--muted)">Loose</div>
-      </div>
-      <div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🃏</div>
-      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
-        <div style="font-size:1.5rem">💼</div>
-        <div style="font-size:.72rem;color:var(--right);font-weight:600;margin-top:4px">Swipe right</div>
-        <div style="font-size:.65rem;color:var(--muted)">Professional</div>
-      </div>
-      <div></div>
-      <div class="gesture-item" style="width:88px;height:88px;padding:10px">
-        <div style="font-size:1.5rem">🗑️</div>
-        <div style="font-size:.72rem;color:var(--down);font-weight:600;margin-top:4px">Swipe down</div>
-        <div style="font-size:.65rem;color:var(--muted)">Remove</div>
-      </div>
-      <div></div>
+      <button class="btn-sec" onclick="obGo(3)" style="padding:6px 14px;font-size:.8rem">Skip</button>
     </div>
-    <p class="onboard-text" style="font-size:.82rem">💡 Your connections at our priority accounts are shown first.</p>
-    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
-      <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
-      <button class="btn-primary" style="flex:1" onclick="nextOnboardStep()">Next →</button>
-    </div>
-  </div>
 
-  <!-- Step 3: Ready -->
-  <div style="width:100%;max-width:420px;flex:1;display:flex;flex-direction:column" id="onboard-step-3" style="display:none;flex-direction:column">
-    <div class="onboard-title">Ready to<br><em>get started?</em></div>
-    <p class="onboard-text">You are signed in as <strong id="onboard-user-display">—</strong>.</p>
-    <p class="onboard-text">You will only see your own connections. Each person scores their network independently, and the results are combined into a single shared map.</p>
-    <p class="onboard-text" style="font-size:.85rem;color:var(--muted)">If you need to stop at any point, simply close the app. Your progress is saved and you will continue from where you left off next time.</p>
-    <div style="display:flex;gap:10px;width:100%;max-width:420px;margin-top:auto">
-      <button class="btn-secondary" onclick="prevOnboardStep()" style="width:80px">←</button>
-      <button class="btn-primary" style="flex:1" onclick="startScoring()">Start scoring →</button>
+    <!-- Step 0 -->
+    <div class="ob-step" id="ob0">
+      <div class="ob-content">
+        <div class="sname">Map your<br><em>network strength</em></div>
+        <p class="sbody">Biobridge is building an interactive map of our collective network across the life science industry. Your task is to rate the strength of your personal relationship with each contact shown.</p>
+        <p class="sbody">The profiles you will see are drawn from the LinkedIn connections you submitted. They have been pre-filtered for life science relevance, so you are only scoring a focused subset — not your entire network.</p>
+      </div>
+      <div class="ob-nav">
+        <button class="btn-pri" onclick="obGo(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="ob-step off" id="ob1">
+      <div class="ob-content" style="overflow-y:auto">
+        <div class="sname">Rate each<br><em>relationship</em></div>
+        <p class="sbody">Score each contact based on the strength of your personal relationship using the four levels below.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
+          <div class="score-card">
+            <div class="score-icon" style="background:rgba(245,158,11,.15)">👋</div>
+            <div><h4>1 · Loose</h4><p>You are connected but have had little meaningful interaction. They may not remember you well.</p></div>
+          </div>
+          <div class="score-card">
+            <div class="score-icon" style="background:rgba(79,124,255,.15)">🤝</div>
+            <div><h4>2 · Professional</h4><p>You have worked together or exchanged meaningfully. They would respond to a message from you.</p></div>
+          </div>
+          <div class="score-card">
+            <div class="score-icon" style="background:rgba(34,197,94,.15)">⭐</div>
+            <div><h4>3 · Strong</h4><p>You would pick up the phone for each other. Trust exists, and you could ask for a warm introduction.</p></div>
+          </div>
+          <div class="score-card">
+            <div class="score-icon" style="background:rgba(239,68,68,.15)">🗑️</div>
+            <div><h4>Remove</h4><p>Not relevant or misclassified. Removes the contact from your scoring queue.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="ob-nav">
+        <button class="btn-sec" onclick="obGo(0)" style="width:72px">←</button>
+        <button class="btn-pri" onclick="obGo(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="ob-step off" id="ob2">
+      <div class="ob-content">
+        <div class="sname">How to<br><em>score</em></div>
+        <p class="sbody">Swipe the card in the direction shown, or use the arrow keys on your keyboard.</p>
+        <!-- Compass: 3-col grid, no centre circle, arrows instead -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;max-width:280px;margin:0 auto 20px">
+          <!-- row 1 -->
+          <div></div>
+          <div style="background:var(--surf);border:1px solid rgba(34,197,94,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div style="font-size:1.5rem">⭐</div>
+            <div style="font-size:.75rem;color:var(--up);font-weight:600">↑ Strong</div>
+          </div>
+          <div></div>
+          <!-- row 2 -->
+          <div style="background:var(--surf);border:1px solid rgba(245,158,11,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div style="font-size:1.5rem">👋</div>
+            <div style="font-size:.75rem;color:var(--lt);font-weight:600">← Loose</div>
+          </div>
+          <div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem">🃏</div>
+          <div style="background:var(--surf);border:1px solid rgba(79,124,255,.35);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div style="font-size:1.5rem">🤝</div>
+            <div style="font-size:.75rem;color:var(--rt);font-weight:600">Pro →</div>
+          </div>
+          <!-- row 3 -->
+          <div></div>
+          <div style="background:var(--surf);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div style="font-size:1.5rem">🗑️</div>
+            <div style="font-size:.75rem;color:var(--dn);font-weight:600">↓ Remove</div>
+          </div>
+          <div></div>
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);line-height:1.55">Your connections at our priority accounts are shown first.</p>
+      </div>
+      <div class="ob-nav">
+        <button class="btn-sec" onclick="obGo(1)" style="width:72px">←</button>
+        <button class="btn-pri" onclick="obGo(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="ob-step off" id="ob3">
+      <div class="ob-content">
+        <div class="sname">Ready to<br><em>get started?</em></div>
+        <p class="sbody">You are signed in as <strong id="ob-user">—</strong>.</p>
+        <p class="sbody">You will only see your own connections. Each person scores their network independently, and the results are combined into a single shared map.</p>
+        <p class="sbody" style="font-size:.85rem">If you need to stop, simply close the app. Your progress is saved automatically and you will continue from where you left off.</p>
+      </div>
+      <div class="ob-nav">
+        <button class="btn-sec" onclick="obGo(2)" style="width:72px">←</button>
+        <button class="btn-pri" onclick="startScoring()">Start scoring →</button>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="screen-loading" class="screen hidden">
-  <div class="loading-spinner"></div>
-  <div class="loading-text" id="loading-text">Loading your connections…</div>
+<!-- ══ LOADING ═════════════════════════════════════════════════════ -->
+<div id="s-load" class="screen off">
+  <div class="spinner"></div>
+  <div class="load-txt" id="load-txt">Loading your connections…</div>
 </div>
 
-<div id="screen-scoring" class="screen hidden">
-  <div class="scoring-header">
+<!-- ══ SCORING ══════════════════════════════════════════════════════ -->
+<div id="s-score" class="screen off">
+  <!-- Header -->
+  <div class="sc-header">
     <div>
-      <div class="scoring-user-name" id="scoring-user-name">—</div>
-      <div class="scoring-user-sub">Scoring your connections</div>
+      <div class="sc-name" id="sc-name">—</div>
+      <div class="sc-sub">Scoring your connections</div>
     </div>
-    <div class="scoring-stats">
-      <div class="scoring-count"><strong id="scored-count">0</strong> scored</div>
-      <div class="scoring-count"><strong id="remaining-count">0</strong> remaining</div>
+    <div class="sc-count">
+      <div><strong id="sc-scored">0</strong> scored</div>
+      <div><strong id="sc-left">0</strong> remaining</div>
     </div>
   </div>
-  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
-  <div class="card-arena" id="card-arena">
-    <div class="hint-zone" id="hint-left"><div class="hint-icon">🤝</div><div class="hint-label">Loose</div></div>
-    <div class="hint-zone" id="hint-right"><div class="hint-icon">💼</div><div class="hint-label">Pro</div></div>
-    <div class="hint-zone" id="hint-up"><div class="hint-icon">⭐</div><div class="hint-label">Strong</div></div>
-    <div class="hint-zone" id="hint-down"><div class="hint-icon">🗑️</div><div class="hint-label">Remove</div></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+  <!-- Arena with hint icons -->
+  <div class="arena" id="arena">
+    <div class="hint" id="h-up"><div class="hint-ico">⭐</div><div class="hint-lbl">Strong</div></div>
+    <div class="hint" id="h-dn"><div class="hint-ico">🗑️</div><div class="hint-lbl">Remove</div></div>
+    <div class="hint" id="h-lt"><div class="hint-ico">👋</div><div class="hint-lbl">Loose</div></div>
+    <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl">Pro</div></div>
   </div>
-  <div class="action-buttons">
-    <button class="action-btn btn-1"   onclick="scoreCard(1)"><span class="btn-icon">🤝</span><span class="btn-lbl">Loose</span></button>
-    <button class="action-btn btn-del" onclick="scoreCard('remove')"><span class="btn-icon">🗑️</span><span class="btn-lbl">Remove</span></button>
-    <button class="action-btn btn-3"   onclick="scoreCard(3)"><span class="btn-icon">⭐</span><span class="btn-lbl">Strong</span></button>
-    <button class="action-btn btn-2"   onclick="scoreCard(2)"><span class="btn-icon">💼</span><span class="btn-lbl">Pro</span></button>
+
+  <!-- Action buttons (desktop fallback, always visible) -->
+  <div class="act-row">
+    <button class="act-btn abt-lt" onclick="go(1)"><span class="act-ico">👋</span><span class="act-lbl">Loose</span></button>
+    <button class="act-btn abt-dn" onclick="go('r')"><span class="act-ico">🗑️</span><span class="act-lbl">Remove</span></button>
+    <button class="act-btn abt-up" onclick="go(3)"><span class="act-ico">⭐</span><span class="act-lbl">Strong</span></button>
+    <button class="act-btn abt-rt" onclick="go(2)"><span class="act-ico">🤝</span><span class="act-lbl">Pro</span></button>
   </div>
 </div>
 
-<div id="screen-done" class="screen hidden">
-  <div class="done-icon">🎉</div>
-  <div class="done-title">All done!</div>
+<!-- ══ DONE ════════════════════════════════════════════════════════ -->
+<div id="s-done" class="screen off">
+  <div class="done-ico">🎉</div>
+  <div class="done-ttl">All done!</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
   <div class="done-stats">
-    <div class="done-stat"><div class="done-stat-num" id="done-scored">0</div><div class="done-stat-lbl">Scored</div></div>
-    <div class="done-stat"><div class="done-stat-num" id="done-strong">0</div><div class="done-stat-lbl">Strong</div></div>
-    <div class="done-stat"><div class="done-stat-num" id="done-removed">0</div><div class="done-stat-lbl">Removed</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-scored">0</div><div class="dstat-l">Scored</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-strong">0</div><div class="dstat-l">Strong</div></div>
+    <div class="dstat"><div class="dstat-n" id="dn-rem">0</div><div class="dstat-l">Removed</div></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Config from app_config.js ─────────────────────────────────────
-const ALLOWED_DOMAIN  = "biobridgepartners.com";
-const SP_SITE_URL     = APP_CONFIG.SHAREPOINT_SITE;
-const SP_LIST_NAME    = "NetworkScores";
-const SP_CSV_PATH     = "output/to_score_latest.csv";
+// ══ Config ═══════════════════════════════════════════════════════
+const DOMAIN       = "biobridgepartners.com";
+const SP_SITE      = APP_CONFIG.SHAREPOINT_SITE;
+const SP_LIST      = "NetworkScores";
+const SP_CSV       = "output/to_score_latest.csv";
+const SP_SCOPES    = ["https://biobridgepartners.sharepoint.com/.default"];
 
-const msalConfig = {
-  auth: {
-    clientId:    APP_CONFIG.AZURE_CLIENT_ID,
-    authority:   `https://login.microsoftonline.com/${APP_CONFIG.AZURE_TENANT_ID}`,
+const msalCfg = {
+  auth:{
+    clientId:   APP_CONFIG.AZURE_CLIENT_ID,
+    authority:  `https://login.microsoftonline.com/${APP_CONFIG.AZURE_TENANT_ID}`,
     redirectUri: window.location.origin + window.location.pathname,
   },
-  cache: { cacheLocation: "sessionStorage" }
+  cache:{cacheLocation:"sessionStorage"}
 };
+const msal_app = (typeof msal !== "undefined")
+  ? new msal.PublicClientApplication(msalCfg) : null;
 
-// Guard: only instantiate MSAL if the library loaded successfully
-const msalInstance = (typeof msal !== "undefined")
-  ? new msal.PublicClientApplication(msalConfig)
-  : null;
-const SP_SCOPES = ["https://biobridgepartners.sharepoint.com/.default"];
-
-// ── State ─────────────────────────────────────────────────────────
+// ══ State ════════════════════════════════════════════════════════
 var S = {
-  user: null, token: null,
-  queue: [], scores: {},
-  currentIdx: 0, totalToScore: 0,
-  siteId: null, listId: null,
+  user:null, token:null,
+  queue:[], scores:{},
+  idx:0, total:0,
+  siteId:null, listId:null
 };
 
-// ── Auth ──────────────────────────────────────────────────────────
-window.addEventListener("load", async () => {
-  try {
-    if (typeof msal === "undefined") return; // MSAL failed to load — test mode only
-    await msalInstance.initialize();
-    const result = await msalInstance.handleRedirectPromise();
-    if (result) { await onSignedIn(result); return; }
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      try {
-        const r = await msalInstance.acquireTokenSilent({ scopes: SP_SCOPES, account: accounts[0] });
-        await onSignedIn({ account: accounts[0], accessToken: r.accessToken });
-      } catch(e) {}
+// ══ Screen helper ════════════════════════════════════════════════
+function show(id){
+  document.querySelectorAll(".screen").forEach(function(el){el.classList.add("off");});
+  document.getElementById(id).classList.remove("off");
+}
+
+// ══ Auth ═════════════════════════════════════════════════════════
+window.addEventListener("load", async function(){
+  try{
+    if(!msal_app) return;
+    await msal_app.initialize();
+    var r = await msal_app.handleRedirectPromise();
+    if(r){onAuth(r);return;}
+    var accs = msal_app.getAllAccounts();
+    if(accs.length){
+      try{
+        var t = await msal_app.acquireTokenSilent({scopes:SP_SCOPES,account:accs[0]});
+        onAuth({account:accs[0],accessToken:t.accessToken});
+      }catch(e){}
     }
-  } catch(e) {
-    console.warn("MSAL init failed:", e.message);
-  }
+  }catch(e){console.warn("MSAL init:",e.message);}
 });
 
-async function signIn() {
-  if (typeof msal === "undefined") {
-    showAuthError("Microsoft sign-in is not available yet. Use test mode below.");
-    return;
-  }
-  const btn = document.getElementById("btn-signin");
-  btn.disabled = true;
-  btn.textContent = "Signing in…";
-  try {
-    await msalInstance.loginRedirect({ scopes: SP_SCOPES });
-  } catch(e) {
-    showAuthError("Sign-in failed. Please try again.");
-    btn.disabled = false;
-    btn.innerHTML = `<svg class="msft-icon" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Sign in with Microsoft`;
+async function signIn(){
+  if(!msal_app){showErr("Microsoft sign-in not available — use test mode.");return;}
+  var btn=document.getElementById("btn-msft");
+  btn.disabled=true; btn.textContent="Signing in…";
+  try{await msal_app.loginRedirect({scopes:SP_SCOPES});}
+  catch(e){
+    showErr("Sign-in failed. Please try again.");
+    btn.disabled=false;
+    btn.innerHTML='<svg class="msft-icon" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Sign in with Microsoft';
   }
 }
 
-async function onSignedIn(result) {
-  const email = result.account.username.toLowerCase();
-  if (!email.endsWith("@" + ALLOWED_DOMAIN)) {
-    showAuthError(`Access denied. Only @${ALLOWED_DOMAIN} accounts are permitted.`);
-    await msalInstance.logoutRedirect();
-    return;
-  }
-  // Derive contributor from first name in email (florian.preis@ → florian)
-  const contributor = email.split("@")[0].split(".")[0].toLowerCase();
-  const displayName = result.account.name || contributor;
-  S.user  = { name: displayName, email, contributor };
-  S.token = result.accessToken;
-  document.getElementById("onboard-user-display").textContent = `${displayName} (${email})`;
-  showScreen("onboarding");
+function onAuth(r){
+  var email=r.account.username.toLowerCase();
+  if(!email.endsWith("@"+DOMAIN)){showErr("Access denied. Only @"+DOMAIN+" accounts are permitted.");msal_app&&msal_app.logoutRedirect();return;}
+  var contrib=email.split("@")[0].split(".")[0].toLowerCase();
+  S.user={name:r.account.name||contrib,email:email,contributor:contrib};
+  S.token=r.accessToken||null;
+  document.getElementById("ob-user").textContent=S.user.name+" ("+email+")";
+  show("s-onboard");
 }
 
-function showAuthError(msg) {
-  const el = document.getElementById("auth-error");
-  el.textContent = msg; el.style.display = "block";
+function showErr(msg){
+  var el=document.getElementById("auth-err");
+  el.textContent=msg; el.style.display="block";
 }
 
-// ── SharePoint API ────────────────────────────────────────────────
-async function spGet(path) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    headers: { Authorization: `Bearer ${S.token}`, Accept: "application/json" }
-  });
-  if (!r.ok) throw new Error(`SP ${r.status}: ${await r.text()}`);
+// Dev bypass
+function devBypass(){
+  try{
+    S.user={name:"Test Mode",email:"florian@biobridgepartners.com",contributor:"florian"};
+    S.token=null;
+    document.getElementById("ob-user").textContent="Florian Preis (test mode)";
+    EMBEDDED=[
+      {unique_id:"t1",contributor:"florian","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023",score:""},
+      {unique_id:"t2",contributor:"florian","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022",score:""},
+      {unique_id:"t3",contributor:"florian","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"LEO Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021",score:""},
+      {unique_id:"t4",contributor:"florian","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020",score:""},
+      {unique_id:"t5",contributor:"florian","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory",target_account:"Genmab",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023",score:""},
+      {unique_id:"t6",contributor:"florian","First Name":"Peter","Last Name":"Hansen",Company:"Zealand Pharma",Position:"Chief Medical Officer",target_account:"Zealand Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"14 Apr 2022",score:""},
+      {unique_id:"t7",contributor:"florian","First Name":"Camilla","Last Name":"Madsen",Company:"McKinsey & Company",Position:"Partner, Healthcare Practice",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"01 Nov 2019",score:""},
+      {unique_id:"t8",contributor:"florian","First Name":"Jonas","Last Name":"Pedersen",Company:"Novo Holdings",Position:"Investment Director",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"30 Aug 2021",score:""},
+      {unique_id:"t9",contributor:"florian","First Name":"Ida","Last Name":"Larsen",Company:"BioInnovation Institute",Position:"Programme Manager",target_account:"",life_science_relevant:"maybe",seniority:"Mid","Connected On":"11 May 2022",score:""},
+      {unique_id:"t10",contributor:"florian","First Name":"Thomas","Last Name":"Eriksen",Company:"Ascendis Pharma",Position:"Senior Vice President Strategy",target_account:"Ascendis Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"25 Dec 2022",score:""},
+    ];
+    show("s-onboard");
+  }catch(e){alert("Error: "+e.message);}
+}
+
+// ══ Onboarding ═══════════════════════════════════════════════════
+var obStep=0;
+function obGo(n){
+  document.getElementById("ob"+obStep).classList.add("off");
+  document.getElementById("d"+obStep).classList.remove("on");
+  obStep=Math.max(0,Math.min(3,n));
+  document.getElementById("ob"+obStep).classList.remove("off");
+  document.getElementById("d"+obStep).classList.add("on");
+}
+
+// ══ SharePoint helpers ═══════════════════════════════════════════
+async function spReq(path,method,body){
+  var opts={method:method||"GET",headers:{Authorization:"Bearer "+S.token,"Content-Type":"application/json",Accept:"application/json"}};
+  if(body) opts.body=JSON.stringify(body);
+  var r=await fetch("https://graph.microsoft.com/v1.0"+path,opts);
+  if(!r.ok) throw new Error("SP "+r.status+": "+await r.text());
+  if(r.status===204) return null;
   return r.json();
 }
-async function spPost(path, body) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${S.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(`SP ${r.status}: ${await r.text()}`);
-  if (r.status === 204) return null;
-  return r.json();
+async function getSiteId(){
+  if(S.siteId) return S.siteId;
+  var host=new URL(SP_SITE).hostname, path=new URL(SP_SITE).pathname;
+  var d=await spReq("/sites/"+host+":"+path);
+  S.siteId=d.id; return S.siteId;
 }
-async function spPatch(path, body) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${S.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(`SP ${r.status}: ${await r.text()}`);
-  return null;
+async function ensureList(){
+  if(S.listId) return S.listId;
+  var sid=await getSiteId();
+  var ls=await spReq("/sites/"+sid+"/lists?$filter=displayName eq '"+SP_LIST+"'");
+  if(ls.value&&ls.value.length){S.listId=ls.value[0].id;return S.listId;}
+  var l=await spReq("/sites/"+sid+"/lists","POST",{displayName:SP_LIST,columns:[{name:"unique_id",text:{}},{name:"contributor",text:{}},{name:"score",text:{}},{name:"score_date",text:{}}],list:{template:"genericList"}});
+  S.listId=l.id; return S.listId;
 }
-
-async function getSiteId() {
-  if (S.siteId) return S.siteId;
-  const host = new URL(SP_SITE_URL).hostname;
-  const path = new URL(SP_SITE_URL).pathname;
-  const data = await spGet(`/sites/${host}:${path}`);
-  S.siteId = data.id;
-  return S.siteId;
-}
-
-async function ensureScoresList() {
-  if (S.listId) return S.listId;
-  const siteId = await getSiteId();
-  // Check if list exists
-  const lists = await spGet(`/sites/${siteId}/lists?$filter=displayName eq '${SP_LIST_NAME}'`);
-  if (lists.value && lists.value.length > 0) {
-    S.listId = lists.value[0].id; return S.listId;
+async function loadScores(contrib){
+  var sid=await getSiteId(), lid=await ensureList(), sc={};
+  var path="/sites/"+sid+"/lists/"+lid+"/items?$expand=fields&$filter=fields/contributor eq '"+contrib+"'&$top=999";
+  while(path){
+    var d=await spReq(path);
+    (d.value||[]).forEach(function(i){var f=i.fields;if(f.unique_id)sc[f.unique_id]={score:f.score,score_date:f.score_date,itemId:i.id};});
+    path=d["@odata.nextLink"]?d["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0",""):null;
   }
-  // Create it
-  const list = await spPost(`/sites/${siteId}/lists`, {
-    displayName: SP_LIST_NAME,
-    columns: [
-      { name: "unique_id",   text: {} },
-      { name: "contributor", text: {} },
-      { name: "score",       text: {} },
-      { name: "score_date",  text: {} },
-    ],
-    list: { template: "genericList" }
-  });
-  S.listId = list.id;
-  return S.listId;
+  return sc;
 }
-
-async function loadExistingScores(contributor) {
-  const siteId = await getSiteId();
-  const listId = await ensureScoresList();
-  const scores = {};
-  let path = `/sites/${siteId}/lists/${listId}/items?$expand=fields&$filter=fields/contributor eq '${contributor}'&$top=999`;
-  while (path) {
-    const data = await spGet(path);
-    (data.value || []).forEach(item => {
-      const f = item.fields;
-      if (f.unique_id) scores[f.unique_id] = { score: f.score, score_date: f.score_date, itemId: item.id };
-    });
-    path = data["@odata.nextLink"]
-      ? data["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0","")
-      : null;
-  }
-  return scores;
+async function saveScore(uid,score,date){
+  try{
+    var sid=await getSiteId(), lid=await ensureList();
+    var ex=S.scores[uid];
+    if(ex&&ex.itemId){await spReq("/sites/"+sid+"/lists/"+lid+"/items/"+ex.itemId+"/fields","PATCH",{score:String(score),score_date:date});}
+    else{await spReq("/sites/"+sid+"/lists/"+lid+"/items","POST",{fields:{unique_id:uid,contributor:S.user.contributor,score:String(score),score_date:date}});}
+  }catch(e){console.warn("Save failed:",e.message);}
 }
-
-async function saveScore(uniqueId, score, date) {
-  try {
-    const siteId = await getSiteId();
-    const listId = await ensureScoresList();
-    const existing = S.scores[uniqueId];
-    if (existing?.itemId) {
-      await spPatch(`/sites/${siteId}/lists/${listId}/items/${existing.itemId}/fields`,
-        { score: String(score), score_date: date });
-    } else {
-      await spPost(`/sites/${siteId}/lists/${listId}/items`, {
-        fields: { unique_id: uniqueId, contributor: S.user.contributor, score: String(score), score_date: date }
-      });
-    }
-  } catch(e) {
-    console.warn("Score save failed (will retry):", e.message);
-  }
-}
-
-async function loadCSVFromSharePoint() {
-  const siteId = await getSiteId();
-  const drives = await spGet(`/sites/${siteId}/drives`);
-  const drive  = drives.value[0];
-  // Download the file content as text
-  const r = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/drives/${drive.id}/root:/${SP_CSV_PATH}:/content`,
-    { headers: { Authorization: `Bearer ${S.token}` } }
-  );
-  if (!r.ok) throw new Error(`CSV not found at ${SP_CSV_PATH} — run filter.py first`);
+async function loadCSV(){
+  var sid=await getSiteId();
+  var drvs=await spReq("/sites/"+sid+"/drives");
+  var drv=drvs.value[0];
+  var r=await fetch("https://graph.microsoft.com/v1.0/sites/"+sid+"/drives/"+drv.id+"/root:/"+SP_CSV+":/content",{headers:{Authorization:"Bearer "+S.token}});
+  if(!r.ok) throw new Error("CSV not found at "+SP_CSV+" — run filter.py first");
   return r.text();
 }
 
-// ── Onboarding ────────────────────────────────────────────────────
-let onboardStep = 0;
-function nextOnboardStep() { setStep(onboardStep + 1); }
-function prevOnboardStep() { setStep(onboardStep - 1); }
-function skipOnboarding()  { setStep(3); }
-function setStep(n) {
-  var prev = document.getElementById("onboard-step-"+onboardStep);
-  var prevDot = document.getElementById("dot-"+onboardStep);
-  if(prev) prev.style.display = "none";
-  if(prevDot) prevDot.classList.remove("active");
-  onboardStep = Math.max(0, Math.min(3, n));
-  var next = document.getElementById("onboard-step-"+onboardStep);
-  var nextDot = document.getElementById("dot-"+onboardStep);
-  if(next) next.style.display = "flex";
-  if(nextDot) nextDot.classList.add("active");
+// ══ CSV parser ════════════════════════════════════════════════════
+function parseCSV(txt){
+  var lines=txt.trim().split(/\r?\n/);
+  var hdrs=lines[0].split(",").map(function(h){return h.replace(/^"|"$/g,"").trim();});
+  return lines.slice(1).map(function(line){
+    var vals=[],cur="",inQ=false;
+    for(var i=0;i<line.length;i++){
+      if(line[i]==='"'){inQ=!inQ;continue;}
+      if(line[i]===','&&!inQ){vals.push(cur.trim());cur="";continue;}
+      cur+=line[i];
+    }
+    vals.push(cur.trim());
+    var obj={};hdrs.forEach(function(h,i){obj[h]=vals[i]||"";});
+    return obj;
+  }).filter(function(r){return r.unique_id;});
 }
 
-// ── Start scoring ────────────────────────────────────────────────
-async function startScoring() {
-  showScreen("loading");
-  const contributor = S.user.contributor;
-  try {
-    document.getElementById("loading-text").textContent = "Loading your connections…";
-    // If no token (test mode), use EMBEDDED_DATA dummy contacts
-    if (!S.token) {
-      const connections = EMBEDDED_DATA.filter(r => r.contributor === contributor);
-      connections.sort((a,b) => {
-        const ta=a.target_account?0:1, tb=b.target_account?0:1;
-        if(ta!==tb) return ta-tb;
-        return (a.life_science_relevant==="yes"?0:1)-(b.life_science_relevant==="yes"?0:1);
-      });
-      S.scores = {};
-      S.queue = connections.filter(c => !c.score);
-      S.totalToScore = S.queue.length;
-      S.currentIdx = 0;
-      document.getElementById("scoring-user-name").textContent = contributor.charAt(0).toUpperCase()+contributor.slice(1);
-      showScreen("scoring");
-      updateProgress();
-      renderCard();
-      return;
+// ══ EMBEDDED (test data) ═════════════════════════════════════════
+var EMBEDDED=[];
+
+// ══ Start scoring ════════════════════════════════════════════════
+async function startScoring(){
+  show("s-load");
+  var contrib=S.user.contributor;
+  try{
+    var conns=[];
+    if(!S.token){
+      conns=EMBEDDED.filter(function(r){return r.contributor===contrib;});
+      S.scores={};
+    } else {
+      document.getElementById("load-txt").textContent="Loading your connections…";
+      var csv=await loadCSV();
+      var all=parseCSV(csv);
+      conns=all.filter(function(r){return r.contributor===contrib;});
+      document.getElementById("load-txt").textContent="Loading your previous scores…";
+      S.scores=await loadScores(contrib);
     }
-    const csvText = await loadCSVFromSharePoint();
-    const all = parseCSV(csvText);
-    const connections = all.filter(r => r.contributor === contributor);
 
-    document.getElementById("loading-text").textContent = "Loading your previous scores…";
-    const existing = await loadExistingScores(contributor);
-    S.scores = existing;
-
-    // Sort: target accounts first, yes before maybe
-    connections.sort((a, b) => {
-      const ta = a.target_account ? 0 : 1, tb = b.target_account ? 0 : 1;
-      if (ta !== tb) return ta - tb;
-      return (a.life_science_relevant === "yes" ? 0 : 1) - (b.life_science_relevant === "yes" ? 0 : 1);
+    conns.sort(function(a,b){
+      var ta=a.target_account?0:1,tb=b.target_account?0:1;
+      if(ta!==tb) return ta-tb;
+      return (a.life_science_relevant==="yes"?0:1)-(b.life_science_relevant==="yes"?0:1);
     });
 
-    S.queue        = connections.filter(c => !existing[c.unique_id]);
-    S.totalToScore = S.queue.length;
-    S.currentIdx   = 0;
+    S.queue=conns.filter(function(c){return !S.scores[c.unique_id];});
+    S.total=S.queue.length;
+    S.idx=0;
 
-    document.getElementById("scoring-user-name").textContent =
-      contributor.charAt(0).toUpperCase() + contributor.slice(1);
-
-    showScreen("scoring");
-    updateProgress();
-    renderCard();
-  } catch(e) {
-    showScreen("onboarding");
-    showToast("Error: " + e.message);
+    document.getElementById("sc-name").textContent=contrib.charAt(0).toUpperCase()+contrib.slice(1);
+    show("s-score");
+    updateProg();
+    render();
+  }catch(e){
+    show("s-onboard");
+    toast("Error: "+e.message);
     console.error(e);
   }
 }
 
-// ── CSV parser ────────────────────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g,"").trim());
-  return lines.slice(1).map(line => {
-    const vals = []; let cur = "", inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === '"') { inQ = !inQ; continue; }
-      if (line[i] === "," && !inQ) { vals.push(cur.trim()); cur = ""; continue; }
-      cur += line[i];
-    }
-    vals.push(cur.trim());
-    const obj = {}; headers.forEach((h,i) => obj[h] = vals[i]||"");
-    return obj;
-  }).filter(r => r.unique_id);
-}
+// ══ Card rendering ════════════════════════════════════════════════
+function render(){
+  var arena=document.getElementById("arena");
+  arena.querySelectorAll(".pcard").forEach(function(c){c.remove();});
+  if(S.idx>=S.queue.length){doneScreen();return;}
 
-// ── Cards ─────────────────────────────────────────────────────────
-function renderCard() {
-  const arena = document.getElementById("card-arena");
-  arena.querySelectorAll(".profile-card").forEach(c => c.remove());
-  if (S.currentIdx >= S.queue.length) { showDoneScreen(); return; }
-  const card = buildCard(S.queue[S.currentIdx]);
-  arena.appendChild(card);
-  setupSwipe(card);
-  if (S.currentIdx + 1 < S.queue.length) {
-    const next = buildCard(S.queue[S.currentIdx + 1]);
-    next.style.cssText = "transform:scale(.95) translateY(12px);opacity:.5;z-index:0;pointer-events:none";
-    arena.insertBefore(next, card);
+  // Next card (background)
+  if(S.idx+1<S.queue.length){
+    var nxt=buildCard(S.queue[S.idx+1]);
+    nxt.style.cssText+="transform:scale(.95) translateY(12px);opacity:.45;z-index:0;pointer-events:none";
+    arena.appendChild(nxt);
   }
+  // Current card (top)
+  var card=buildCard(S.queue[S.idx]);
+  card.style.zIndex="1";
+  arena.appendChild(card);
+  attachSwipe(card);
 }
 
-function buildCard(c) {
-  const card = document.createElement("div");
-  card.className = "profile-card"; card.style.zIndex = "1";
-  const initials = ((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
-  card.innerHTML = `
-    ${c.target_account
-      ? `<div class="card-badge target">🎯 ${c.target_account}</div>`
-      : `<div class="card-badge">Network</div>`}
-    <div style="display:flex;gap:14px;align-items:flex-start">
-      <div class="card-avatar">${initials}</div>
-      <div style="flex:1;min-width:0">
-        <div class="card-name">${c["First Name"]} ${c["Last Name"]}</div>
-        <div class="card-position">${c.Position||"—"}</div>
-        <div class="card-company"><div class="card-company-dot"></div>${c.Company||"—"}</div>
-      </div>
-    </div>
-    <div class="card-divider"></div>
-    <div class="card-meta">
-      ${c.seniority==="Senior"?`<span class="card-tag senior">⭐ Senior</span>`:""}
-      ${c.life_science_relevant==="yes"?`<span class="card-tag">✓ Life science</span>`:`<span class="card-tag">~ Borderline</span>`}
-      ${c["Connected On"]?`<span class="card-tag">Connected ${c["Connected On"]}</span>`:""}
-    </div>
-    <div class="swipe-overlay overlay-left"><div class="swipe-overlay-label">Loose</div></div>
-    <div class="swipe-overlay overlay-right"><div class="swipe-overlay-label">Professional</div></div>
-    <div class="swipe-overlay overlay-up"><div class="swipe-overlay-label">Strong ⭐</div></div>
-    <div class="swipe-overlay overlay-down"><div class="swipe-overlay-label">Remove 🗑️</div></div>`;
+function buildCard(c){
+  var card=document.createElement("div");
+  card.className="pcard";
+  var ini=((c["First Name"]||"?")[0]+(c["Last Name"]||"?")[0]).toUpperCase();
+  var snr=c.seniority==="Senior";
+  var tgt=!!c.target_account;
+  card.innerHTML=(tgt?'<div class="pbadge tgt">🎯 '+c.target_account+'</div>':'<div class="pbadge">Network</div>')+
+    '<div style="display:flex;gap:12px;align-items:flex-start">'+
+      '<div class="pavatar">'+ini+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="pname">'+c["First Name"]+" "+c["Last Name"]+'</div>'+
+        '<div class="ppos">'+(c.Position||"—")+'</div>'+
+        '<div class="pcoy"><div class="pcoy-dot"></div>'+(c.Company||"—")+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="pdiv"></div>'+
+    '<div class="ptags">'+
+      (snr?'<span class="ptag snr">⭐ Senior</span>':'')+
+      (c.life_science_relevant==="yes"?'<span class="ptag">✓ Life science</span>':'<span class="ptag">~ Borderline</span>')+
+      (c["Connected On"]?'<span class="ptag">Connected '+c["Connected On"]+'</span>':'')+
+    '</div>'+
+    '<div class="sov sov-lt"><div class="sov-lbl">Loose</div></div>'+
+    '<div class="sov sov-rt"><div class="sov-lbl">Professional</div></div>'+
+    '<div class="sov sov-up"><div class="sov-lbl">Strong ⭐</div></div>'+
+    '<div class="sov sov-dn"><div class="sov-lbl">Remove 🗑️</div></div>';
   return card;
 }
 
-// ── Swipe ─────────────────────────────────────────────────────────
-function setupSwipe(card) {
-  const mc = new Hammer.Manager(card);
-  mc.add(new Hammer.Pan({ threshold: 10, direction: Hammer.DIRECTION_ALL }));
-  mc.add(new Hammer.Swipe({ threshold: 50, velocity: 0.3, direction: Hammer.DIRECTION_ALL }));
-  mc.on("panmove", e => {
-    card.style.cssText += `;transform:translate(${e.deltaX}px,${e.deltaY}px) rotate(${e.deltaX*.08}deg);transition:none`;
-    card.querySelectorAll(".swipe-overlay").forEach(o => o.style.opacity="0");
-    ["left","right","up","down"].forEach(d => document.getElementById(`hint-${d}`).classList.remove("active"));
-    const ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
-    if(ax>ay&&ax>40){const d=e.deltaX>0?"right":"left";card.querySelector(`.overlay-${d}`).style.opacity=Math.min(ax/120,.9);document.getElementById(`hint-${d}`).classList.add("active");}
-    else if(ay>40){const d=e.deltaY<0?"up":"down";card.querySelector(`.overlay-${d}`).style.opacity=Math.min(ay/120,.9);document.getElementById(`hint-${d}`).classList.add("active");}
+// ══ Swipe (Hammer) ════════════════════════════════════════════════
+function attachSwipe(card){
+  var mc=new Hammer.Manager(card);
+  mc.add(new Hammer.Pan({threshold:10,direction:Hammer.DIRECTION_ALL}));
+  mc.add(new Hammer.Swipe({threshold:50,velocity:.3,direction:Hammer.DIRECTION_ALL}));
+
+  mc.on("panmove",function(e){
+    card.style.transform="translate("+e.deltaX+"px,"+e.deltaY+"px) rotate("+(e.deltaX*.07)+"deg)";
+    card.style.transition="none";
+    card.querySelectorAll(".sov").forEach(function(o){o.style.opacity="0";});
+    ["up","dn","lt","rt"].forEach(function(d){document.getElementById("h-"+d).classList.remove("lit");});
+    var ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
+    if(ax>ay&&ax>40){
+      var d=e.deltaX>0?"rt":"lt";
+      card.querySelector(".sov-"+d).style.opacity=Math.min(ax/100,.9);
+      document.getElementById("h-"+d).classList.add("lit");
+    } else if(ay>40){
+      var d2=e.deltaY<0?"up":"dn";
+      card.querySelector(".sov-"+d2).style.opacity=Math.min(ay/100,.9);
+      document.getElementById("h-"+d2).classList.add("lit");
+    }
   });
-  mc.on("panend", e => {
+
+  mc.on("panend",function(e){
     card.style.transition="transform .3s ease";
-    ["left","right","up","down"].forEach(d=>document.getElementById(`hint-${d}`).classList.remove("active"));
-    const ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
-    if(ax>ay&&ax>80) flyOut(card,e.deltaX>0?"right":"left",e.deltaX>0?2:1);
-    else if(ay>80)   flyOut(card,e.deltaY<0?"up":"down",e.deltaY<0?3:"remove");
+    ["up","dn","lt","rt"].forEach(function(d){document.getElementById("h-"+d).classList.remove("lit");});
+    var ax=Math.abs(e.deltaX),ay=Math.abs(e.deltaY);
+    if(ax>ay&&ax>80)      fly(card,e.deltaX>0?"rt":"lt",e.deltaX>0?2:1);
+    else if(ay>80)        fly(card,e.deltaY<0?"up":"dn",e.deltaY<0?3:"r");
     else card.style.transform="translate(0,0) rotate(0deg)";
   });
-  mc.on("swipeleft",  ()=>flyOut(card,"left",1));
-  mc.on("swiperight", ()=>flyOut(card,"right",2));
-  mc.on("swipeup",    ()=>flyOut(card,"up",3));
-  mc.on("swipedown",  ()=>flyOut(card,"down","remove"));
+
+  mc.on("swipeleft",  function(){fly(card,"lt",1);});
+  mc.on("swiperight", function(){fly(card,"rt",2);});
+  mc.on("swipeup",    function(){fly(card,"up",3);});
+  mc.on("swipedown",  function(){fly(card,"dn","r");});
 }
 
-function flyOut(card, dir, score) {
-  const t={left:"translate(-500px,20px) rotate(-20deg)",right:"translate(500px,20px) rotate(20deg)",up:"translate(0,-500px)",down:"translate(0,500px)"};
-  card.style.cssText+=`;transition:transform .35s ease,opacity .35s ease;transform:${t[dir]};opacity:0;pointer-events:none`;
-  setTimeout(()=>{commitScore(score);card.remove();renderCard();},350);
+function fly(card,dir,score){
+  var tx={lt:"translate(-520px,20px) rotate(-22deg)",rt:"translate(520px,20px) rotate(22deg)",up:"translate(0,-520px)",dn:"translate(0,520px)"};
+  card.style.transition="transform .35s ease,opacity .35s ease";
+  card.style.transform=tx[dir];
+  card.style.opacity="0";
+  card.style.pointerEvents="none";
+  setTimeout(function(){commit(score);card.remove();render();},350);
 }
 
-function scoreCard(score) {
-  const card=document.querySelector(".profile-card"); if(!card)return;
-  flyOut(card,{1:"left",2:"right",3:"up",remove:"down"}[score],score);
+function go(score){
+  var card=document.querySelector(".pcard[style*='z-index: 1'], .pcard");
+  if(!card)return;
+  var dirs={1:"lt",2:"rt",3:"up","r":"dn"};
+  fly(card,dirs[score]||"rt",score);
 }
 
-// ── Commit ────────────────────────────────────────────────────────
-function commitScore(score) {
-  if(S.currentIdx>=S.queue.length) return;
-  const c=S.queue[S.currentIdx];
-  const today=new Date().toISOString().split("T")[0];
-  S.scores[c.unique_id]={score,score_date:today};
-  showToast(score==="remove"?"Removed":{1:"Loose 🤝",2:"Professional 💼",3:"Strong ⭐"}[score]);
-  saveScore(c.unique_id, score, today);  // async, non-blocking
-  // localStorage backup
-  localStorage.setItem(`bb_scores_${S.user.contributor}`, JSON.stringify(S.scores));
-  S.currentIdx++;
-  updateProgress();
+// ══ Commit score ═════════════════════════════════════════════════
+function commit(score){
+  if(S.idx>=S.queue.length)return;
+  var c=S.queue[S.idx];
+  var today=new Date().toISOString().split("T")[0];
+  S.scores[c.unique_id]={score:score,score_date:today};
+  var lbls={1:"Loose 👋",2:"Professional 🤝",3:"Strong ⭐","r":"Removed"};
+  toast(lbls[score]||String(score));
+  if(S.token) saveScore(c.unique_id,score,today);
+  localStorage.setItem("bb_"+S.user.contributor,JSON.stringify(S.scores));
+  S.idx++;
+  updateProg();
 }
 
-// ── Progress & Done ───────────────────────────────────────────────
-function updateProgress() {
-  const pct=S.totalToScore>0?(S.currentIdx/S.totalToScore)*100:0;
-  document.getElementById("progress-fill").style.width=pct+"%";
-  document.getElementById("scored-count").textContent=Object.values(S.scores).filter(s=>s.score!=="removed").length;
-  document.getElementById("remaining-count").textContent=Math.max(0,S.totalToScore-S.currentIdx);
+// ══ Progress ═════════════════════════════════════════════════════
+function updateProg(){
+  var pct=S.total>0?(S.idx/S.total)*100:0;
+  document.getElementById("prog").style.width=pct+"%";
+  var scored=Object.values(S.scores).filter(function(s){return s.score!=="r";}).length;
+  document.getElementById("sc-scored").textContent=scored;
+  document.getElementById("sc-left").textContent=Math.max(0,S.total-S.idx);
 }
 
-function showDoneScreen() {
-  const all=Object.values(S.scores);
-  document.getElementById("done-scored").textContent=all.filter(s=>s.score!=="removed").length;
-  document.getElementById("done-strong").textContent=all.filter(s=>s.score===3||s.score==="3").length;
-  document.getElementById("done-removed").textContent=all.filter(s=>s.score==="removed").length;
-  showScreen("done");
+// ══ Done ═════════════════════════════════════════════════════════
+function doneScreen(){
+  var all=Object.values(S.scores);
+  document.getElementById("dn-scored").textContent=all.filter(function(s){return s.score!=="r";}).length;
+  document.getElementById("dn-strong").textContent=all.filter(function(s){return s.score===3||s.score==="3";}).length;
+  document.getElementById("dn-rem").textContent=all.filter(function(s){return s.score==="r";}).length;
+  show("s-done");
 }
 
-// ── Utils ─────────────────────────────────────────────────────────
-function showScreen(name) {
-  document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden"));
-  document.getElementById(`screen-${name}`).classList.remove("hidden");
-}
-let _tt;
-function showToast(msg) {
-  const t=document.getElementById("toast");
-  t.textContent=msg; t.classList.add("show");
-  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove("show"),1600);
-}
-// ── Dev bypass (remove once Azure redirect URI is fixed) ─────────
-function devBypass() {
-  try {
-    S.user  = { name: "Florian Preis", email: "florian@biobridgepartners.com", contributor: "florian" };
-    S.token = null;
-    document.getElementById("onboard-user-display").textContent = "Florian Preis (test mode)";
-    // Load 10 dummy contacts so swiping can be tested
-    EMBEDDED_DATA = [
-      {unique_id:"test_1",contributor:"florian","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023",score:""},
-      {unique_id:"test_2",contributor:"florian","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022",score:""},
-      {unique_id:"test_3",contributor:"florian","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"LEO Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021",score:""},
-      {unique_id:"test_4",contributor:"florian","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020",score:""},
-      {unique_id:"test_5",contributor:"florian","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"Genmab",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023",score:""},
-      {unique_id:"test_6",contributor:"florian","First Name":"Peter","Last Name":"Hansen",Company:"Zealand Pharma",Position:"Chief Medical Officer",target_account:"Zealand Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"14 Apr 2022",score:""},
-      {unique_id:"test_7",contributor:"florian","First Name":"Camilla","Last Name":"Madsen",Company:"McKinsey & Company",Position:"Partner, Healthcare Practice",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"01 Nov 2019",score:""},
-      {unique_id:"test_8",contributor:"florian","First Name":"Jonas","Last Name":"Pedersen",Company:"Novo Holdings",Position:"Investment Director",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"30 Aug 2021",score:""},
-      {unique_id:"test_9",contributor:"florian","First Name":"Ida","Last Name":"Larsen",Company:"BioInnovation Institute",Position:"Programme Manager",target_account:"",life_science_relevant:"maybe",seniority:"Mid","Connected On":"11 May 2022",score:""},
-      {unique_id:"test_10",contributor:"florian","First Name":"Thomas","Last Name":"Eriksen",Company:"Ascendis Pharma",Position:"Senior Vice President Strategy",target_account:"Ascendis Pharma",life_science_relevant:"yes",seniority:"Senior","Connected On":"25 Dec 2022",score:""},
-    ];
-    showScreen("onboarding");
-  } catch(e) {
-    console.error("devBypass error:", e);
-    alert("Error: " + e.message);
-  }
+// ══ Toast ════════════════════════════════════════════════════════
+var _tt;
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(_tt); _tt=setTimeout(function(){el.classList.remove("on");},1600);
 }
 
-document.addEventListener("keydown",e=>{
-  if(!document.getElementById("screen-scoring").classList.contains("hidden")){
-    if(e.key==="ArrowLeft")  scoreCard(1);
-    if(e.key==="ArrowRight") scoreCard(2);
-    if(e.key==="ArrowUp")    scoreCard(3);
-    if(e.key==="ArrowDown")  scoreCard("remove");
+// ══ Keyboard ═════════════════════════════════════════════════════
+document.addEventListener("keydown",function(e){
+  if(!document.getElementById("s-score").classList.contains("off")){
+    if(e.key==="ArrowLeft")  go(1);
+    if(e.key==="ArrowRight") go(2);
+    if(e.key==="ArrowUp")    go(3);
+    if(e.key==="ArrowDown")  go("r");
   }
 });
 </script>
