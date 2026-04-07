@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Network Scoring</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='50' font-size='80' text-anchor='middle' dominant-baseline='central'>🚀</text></svg>">
-<script src="app_config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -408,8 +407,7 @@ var GD_SHEET_ID    = "12hhxg5o2wft_Tn4y3A9m4VGEpqROFZJNd8EcVOqtfWg";
 
 // Google API key — needed to append rows to the scores sheet.
 // Use the same key already in your api_key.env (GOOGLE_API_KEY).
-// GD_API_KEY is loaded from app_config.js (not committed to GitHub)
-var GD_API_KEY = (typeof APP_GD_API_KEY !== "undefined") ? APP_GD_API_KEY : "";
+var GD_API_KEY = "AIzaSyCD7Sv_3lbkh4viCbZN-8D8EJ61_01szNY";
 
 // ── State ─────────────────────────────────────────────────────────
 var S = {user:null,queue:[],scores:{},idx:0,total:0,history:[],testMode:false};
@@ -551,10 +549,16 @@ async function loadCSVFromDrive(){
     throw new Error("CSV file ID not configured — run filter.py and update GD_CSV_FILE_ID in the app");
   }
   // Public file direct download URL
-  // Use Drive API v3 (supports CORS) instead of direct download URL (blocked by CORS)
-  var url="https://www.googleapis.com/drive/v3/files/"+GD_CSV_FILE_ID+"?alt=media&key="+GD_API_KEY;
-  var r=await fetch(url);
-  if(!r.ok) throw new Error("Could not load CSV from Google Drive (status "+r.status+")");
+  // Export CSV via Google Drive's export endpoint — works for publicly shared files
+  // No API key needed here since the file is shared "anyone with link can view"
+  var url="https://docs.google.com/uc?export=download&id="+GD_CSV_FILE_ID+"&confirm=t";
+  var r=await fetch(url,{mode:"cors"});
+  if(!r.ok){
+    // Fallback: try the spreadsheet export format
+    url="https://docs.google.com/spreadsheets/d/"+GD_CSV_FILE_ID+"/export?format=csv";
+    r=await fetch(url,{mode:"cors"});
+  }
+  if(!r.ok) throw new Error("Could not load contact list (status "+r.status+")");
   var text=await r.text();
   return parseCSV(text);
 }
