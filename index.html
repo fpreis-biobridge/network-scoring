@@ -82,15 +82,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 .sc-card h4{font-size:.88rem;font-weight:500;margin-bottom:2px;color:var(--txt)}
 .sc-card p{font-size:.8rem;color:var(--muted);line-height:1.5}
 
-/* contributor dropdown */
-.contrib-select{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;
-  padding:12px 14px;font-size:.9rem;color:var(--txt);font-family:'DM Sans',sans-serif;
-  outline:none;transition:border-color .2s;width:100%;cursor:pointer;
-  appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606472' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center}
-.contrib-select:focus{border-color:var(--acc)}
-.contrib-select option{background:var(--surf2);color:var(--txt)}
+
 
 /* ── LOADING ──────────────────────────────────────────────────────── */
 #s-load{justify-content:center;gap:12px}
@@ -192,15 +184,15 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 <div id="s-auth" class="screen">
   <div class="auth-logo">Biobridge Partners</div>
   <div class="auth-sub">Network Scoring · Sign in to continue</div>
-  <div class="auth-form">
+  <form class="auth-form" id="auth-form" onsubmit="signIn();return false;" action="#">
     <div class="auth-field">
       <label>Email address</label>
-      <input type="email" id="auth-email" placeholder="you@biobridgepartners.com" autocomplete="email" />
+      <input type="email" id="auth-email" placeholder="you@biobridgepartners.com" autocomplete="email" name="email" />
     </div>
     <div class="auth-field">
       <label>Password</label>
       <div style="position:relative">
-        <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" style="padding-right:42px" />
+        <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" name="password" style="padding-right:42px" />
         <button id="pwd-eye" type="button"
           style="position:absolute;right:0;top:0;bottom:0;width:40px;background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem"
           onmousedown="document.getElementById('auth-password').type='text'"
@@ -211,9 +203,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
           tabindex="-1">👁</button>
       </div>
     </div>
-    <button class="btn-signin" id="btn-signin" onclick="signIn()">Sign in</button>
+    <button class="btn-signin" id="btn-signin" type="submit">Sign in</button>
     <div id="auth-err" style="color:#ef4444;font-size:.82rem;margin-top:4px;text-align:center;line-height:1.5;display:none"></div>
-  </div>
+  </form>
   <p style="color:var(--muted);font-size:.72rem;margin-top:20px;text-align:center;max-width:260px;line-height:1.6">Only @biobridgepartners.com accounts are permitted.</p>
   <p style="color:var(--muted);font-size:.7rem;margin-top:20px">— or —</p>
   <button onclick="devBypass()" style="margin-top:8px;background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif">Test Mode</button>
@@ -306,14 +298,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div class="ob-body">
       <div class="ob-ttl">Ready to<br><em>get started?</em></div>
       <p class="ob-txt">You are signed in as <strong id="ob-user">—</strong>.</p>
-      <p class="ob-txt">Please confirm which set of connections you are scoring today:</p>
-      <div class="auth-field" style="margin-bottom:16px">
-        <label>Your name</label>
-        <select id="contrib-select" class="contrib-select">
-          <option value="">Loading names…</option>
-        </select>
-      </div>
-      <p class="ob-txt">Each team member scores their own network independently. The results are combined into a single shared map that we will use for targeted business development.</p>
+      <p class="ob-txt">Each team member should score their own network independently. The results are combined into a single shared map that we will use for targeted business development.</p>
       <p class="ob-txt" style="font-size:.85rem">If you need to stop, simply close the app. Your progress is saved automatically and you will continue from where you left off next time.</p>
     </div>
     <div class="ob-nav">
@@ -338,7 +323,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   </div></div>
   <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
   <div style="text-align:right;padding:5px 20px 2px;flex-shrink:0">
-    <button onclick="undo()" style="background:transparent;border:none;padding:4px 0;color:var(--muted);cursor:pointer;font-size:.7rem;font-family:'DM Sans',sans-serif;letter-spacing:.04em;text-transform:uppercase;transition:color .2s" onmouseover="this.style.color='var(--soft)'" onmouseout="this.style.color='var(--muted)'">↩ Undo</button>
+    <button onclick="undo()" style="background:transparent;border:none;padding:4px 0;color:var(--muted);cursor:pointer;font-size:.7rem;font-family:'DM Sans',sans-serif;letter-spacing:.04em;text-transform:uppercase;transition:color .2s;touch-action:manipulation" onmouseover="this.style.color='var(--soft)'" onmouseout="this.style.color='var(--muted)'">↩ Undo</button>
   </div>
   <div class="arena" id="arena">
     <div class="hint" id="h-up"><div class="hint-ico">⭐</div><div class="hint-lbl" style="color:var(--up)">Trusted</div></div>
@@ -447,14 +432,6 @@ async function sha256(message){
 }
 
 // ── Auth ──────────────────────────────────────────────────────────
-// Allow Enter key to submit
-document.addEventListener("DOMContentLoaded", function(){
-  ["auth-email","auth-password"].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) el.addEventListener("keydown",function(e){if(e.key==="Enter")signIn();});
-  });
-});
-
 async function signIn(){
   var email=(document.getElementById("auth-email").value||"").trim().toLowerCase();
   var password=document.getElementById("auth-password").value||"";
@@ -475,17 +452,22 @@ async function signIn(){
     return;
   }
 
-  // Auth passed
-  S.user={email:email};
+  // Auth passed — resolve contributor alias from email prefix
+  var prefix=email.split("@")[0].toLowerCase();
+  if(ALIASES.indexOf(prefix)===-1){
+    showAuthErr("No connections found for this account. Contact Florian.");
+    btn.disabled=false; btn.textContent="Sign in";
+    return;
+  }
+  S.user={email:email, contributor:prefix};
   document.getElementById("ob-user").textContent=email;
   btn.disabled=false; btn.textContent="Sign in";
 
-  // Load contributor list from CSV to populate dropdown
+  // Pre-load CSV in background while user reads onboarding
   show("s-load");
-  document.getElementById("load-txt").textContent="Loading contributor list…";
+  document.getElementById("load-txt").textContent="Loading your connections…";
   try{
-    var allRows=await loadCSVFromDrive();
-    populateContribDropdown(allRows);
+    S._allRows=await loadCSVFromDrive();
     show("s-onboard");
   }catch(e){
     show("s-auth");
@@ -493,47 +475,18 @@ async function signIn(){
   }
 }
 
-function populateContribDropdown(rows){
-  // Extract unique contributor names from CSV, format them for display
-  var seen={};
-  var names=[];
-  rows.forEach(function(r){
-    var raw=r.contributor||"";
-    if(!raw||seen[raw])return;
-    seen[raw]=true;
-    // Convert florian_preis → Florian Preis
-    var display=raw.split("_").map(function(w){
-      return w.charAt(0).toUpperCase()+w.slice(1);
-    }).join(" ");
-    names.push({raw:raw,display:display});
-  });
-  names.sort(function(a,b){return a.display.localeCompare(b.display);});
-
-  var sel=document.getElementById("contrib-select");
-  sel.innerHTML='<option value="">— Select your name —</option>';
-  names.forEach(function(n){
-    var opt=document.createElement("option");
-    opt.value=n.raw;
-    opt.textContent=n.display;
-    sel.appendChild(opt);
-  });
-
-  // Cache the full CSV data so we don't re-fetch it
-  S._allRows=rows;
-}
 
 function devBypass(){
   S.testMode=true;
-  S.user={email:"test@biobridgepartners.com"};
-  document.getElementById("ob-user").textContent="Test Mode";
+  S.user={email:"fpreis@biobridgepartners.com", contributor:"fpreis"};
+  document.getElementById("ob-user").textContent="fpreis@biobridgepartners.com";
   S._allRows=[
-    {unique_id:"t1",contributor:"florian_preis","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023"},
-    {unique_id:"t2",contributor:"florian_preis","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022"},
-    {unique_id:"t3",contributor:"florian_preis","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021"},
-    {unique_id:"t4",contributor:"daniel_schmidt","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020"},
-    {unique_id:"t5",contributor:"daniel_schmidt","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023"},
+    {unique_id:"t1",contributor:"fpreis","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023"},
+    {unique_id:"t2",contributor:"fpreis","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022"},
+    {unique_id:"t3",contributor:"fpreis","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021"},
+    {unique_id:"t4",contributor:"dschmidt","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020"},
+    {unique_id:"t5",contributor:"dschmidt","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023"},
   ];
-  populateContribDropdown(S._allRows);
   show("s-onboard");
 }
 
@@ -701,17 +654,8 @@ function parseCSV(txt){
 
 // ── Start scoring ─────────────────────────────────────────────────
 async function startScoring(){
-  var sel=document.getElementById("contrib-select");
-  var contributor=sel.value;
-  if(!contributor){toast("Please select your name first.");return;}
-
-  // Convert raw contributor key to display name
-  var displayName=contributor.split("_").map(function(w){
-    return w.charAt(0).toUpperCase()+w.slice(1);
-  }).join(" ");
-
-  S.user.contributor=contributor;
-  S.user.name=displayName;
+  var contributor=S.user.contributor;
+  if(!contributor){toast("Contributor not set — please sign in again.");return;}
 
   show("s-load");
   document.getElementById("load-txt").textContent="Loading your connections…";
@@ -750,7 +694,7 @@ async function startScoring(){
     S.total=S.queue.length;
     S.idx=0;
 
-    document.getElementById("sc-name").textContent=displayName.split(" ")[0];
+    document.getElementById("sc-name").textContent=contributor;
     show("s-score");
     updateProg();
     render();
