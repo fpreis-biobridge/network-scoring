@@ -493,9 +493,15 @@ async function signIn(){
   if(!msalApp){showAuthErr("Microsoft sign-in unavailable — use Test Mode.");return;}
   var btn=document.getElementById("btn-msft");
   btn.disabled=true; btn.textContent="Signing in…";
-  try{await msalApp.loginRedirect({scopes:SP_SCOPES});}
+  try{
+    // Clear any stale interaction lock from a previous failed attempt
+    try{msalApp.browserStorage.setInteractionInProgress(false);}catch(ignore){}
+    await msalApp.loginRedirect({scopes:SP_SCOPES});
+  }
   catch(e){
-    showAuthErr("Sign-in failed. Please try again.");
+    var code=e.errorCode||"unknown";
+    var msg=e.message||"";
+    showAuthErr("Sign-in error ["+code+"]: "+msg.split(".")[0]);
     btn.disabled=false;
     btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Sign in with Microsoft';
   }
