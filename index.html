@@ -166,9 +166,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(79,124,255,.08),transparent 70%),var(--bg)}
 .done-ttl{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--txt)}
 .done-sub{color:var(--muted);max-width:300px;line-height:1.7;font-size:.88rem}
-.dstat{display:flex;flex-direction:column;align-items:center;gap:5px}
-.dstat-n{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--txt)}
-.dstat-l{font-size:.63rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+
 
 /* ── Toast ─────────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(10px);
@@ -338,20 +336,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
   <div style="font-size:2.8rem;margin-bottom:4px">🎉</div>
   <div class="done-ttl">All done</div>
   <p class="done-sub">Your scores have been saved, thank you for your help. We will merge your connections into the joint network map shortly.</p>
-  <div style="display:flex;gap:0;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;width:100%;max-width:360px">
-    <div class="dstat" style="flex:1;padding:20px 8px;border-right:1px solid var(--bdr)">
-      <div class="dstat-n" id="dn-cold">0</div><div class="dstat-l">👋 Cold</div>
-    </div>
-    <div class="dstat" style="flex:1;padding:20px 8px;border-right:1px solid var(--bdr)">
-      <div class="dstat-n" id="dn-warm">0</div><div class="dstat-l">🤝 Warm</div>
-    </div>
-    <div class="dstat" style="flex:1;padding:20px 8px;border-right:1px solid var(--bdr)">
-      <div class="dstat-n" id="dn-trusted">0</div><div class="dstat-l">⭐ Trusted</div>
-    </div>
-    <div class="dstat" style="flex:1;padding:20px 8px">
-      <div class="dstat-n" id="dn-rem">0</div><div class="dstat-l">🗑️ Removed</div>
-    </div>
-  </div>
+  <canvas id="donut-chart" width="260" height="260" style="margin:4px 0 0"></canvas>
+  <div id="donut-legend" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -477,14 +463,14 @@ async function signIn(){
 
 function devBypass(){
   S.testMode=true;
-  S.user={email:"fpreis@biobridgepartners.com", contributor:"fpreis"};
-  document.getElementById("ob-user").textContent="fpreis@biobridgepartners.com";
+  S.user={email:"test", contributor:"fpreis"};
+  document.getElementById("ob-user").textContent="Test Mode";
   S._allRows=[
     {unique_id:"t1",contributor:"fpreis","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023"},
     {unique_id:"t2",contributor:"fpreis","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022"},
     {unique_id:"t3",contributor:"fpreis","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021"},
-    {unique_id:"t4",contributor:"dschmidt","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020"},
-    {unique_id:"t5",contributor:"dschmidt","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023"},
+    {unique_id:"t4",contributor:"fpreis","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020"},
+    {unique_id:"t5",contributor:"fpreis","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023"},
   ];
   show("s-onboard");
 }
@@ -883,11 +869,87 @@ function updateProg(){
 // ── Done ──────────────────────────────────────────────────────────
 function doneScreen(){
   var all=Object.values(S.scores);
-  document.getElementById("dn-cold").textContent=all.filter(function(s){return s.score===1||s.score==="1";}).length;
-  document.getElementById("dn-warm").textContent=all.filter(function(s){return s.score===2||s.score==="2";}).length;
-  document.getElementById("dn-trusted").textContent=all.filter(function(s){return s.score===3||s.score==="3";}).length;
-  document.getElementById("dn-rem").textContent=all.filter(function(s){return s.score==="r";}).length;
+  var counts={
+    trusted: all.filter(function(s){return s.score===3||s.score==="3";}).length,
+    warm:    all.filter(function(s){return s.score===2||s.score==="2";}).length,
+    cold:    all.filter(function(s){return s.score===1||s.score==="1";}).length,
+    removed: all.filter(function(s){return s.score==="r";}).length
+  };
+  var total=all.length||1;
   show("s-done");
+  drawDonut(counts,total);
+}
+
+function drawDonut(counts,total){
+  var canvas=document.getElementById("donut-chart");
+  var ctx=canvas.getContext("2d");
+  var dpr=window.devicePixelRatio||1;
+  var size=260;
+  canvas.width=size*dpr; canvas.height=size*dpr;
+  canvas.style.width=size+"px"; canvas.style.height=size+"px";
+  ctx.scale(dpr,dpr);
+
+  var cx=size/2, cy=size/2, r=100, inner=62;
+  var segments=[
+    {key:"trusted", label:"Trusted", emoji:"⭐", count:counts.trusted, color:"#f5a623"},
+    {key:"warm",    label:"Warm",    emoji:"🤝", count:counts.warm,    color:"#4f7cff"},
+    {key:"cold",    label:"Cold",    emoji:"👋", count:counts.cold,    color:"#4a5568"},
+    {key:"removed", label:"Removed", emoji:"🗑️", count:counts.removed, color:"#2a2d3a"}
+  ];
+
+  var gap=0.025; // gap between segments in radians
+  var start=-Math.PI/2;
+  ctx.clearRect(0,0,size,size);
+
+  segments.forEach(function(seg){
+    var sweep=(seg.count/total)*Math.PI*2;
+    if(sweep<0.001)return;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start+gap/2,start+sweep-gap/2);
+    ctx.closePath();
+    // Donut hole
+    ctx.save();
+    ctx.globalCompositeOperation="source-over";
+    ctx.fillStyle=seg.color;
+    ctx.fill();
+    ctx.restore();
+    start+=sweep;
+  });
+
+  // Cut out centre hole
+  ctx.save();
+  ctx.globalCompositeOperation="destination-out";
+  ctx.beginPath();
+  ctx.arc(cx,cy,inner,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Centre label
+  ctx.fillStyle="#e8eaf0";
+  ctx.font="bold 28px 'DM Serif Display', serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText(total,cx,cy-10);
+  ctx.fillStyle="#606472";
+  ctx.font="11px 'DM Sans', sans-serif";
+  ctx.fillText("scored",cx,cy+14);
+
+  // Legend
+  var legend=document.getElementById("donut-legend");
+  legend.innerHTML="";
+  segments.forEach(function(seg){
+    if(seg.count===0)return;
+    var pct=Math.round((seg.count/total)*100);
+    var row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:10px;";
+    row.innerHTML=
+      '<div style="width:12px;height:12px;border-radius:3px;flex-shrink:0;background:'+seg.color+'"></div>'+
+      '<div style="flex:1;font-size:.82rem;color:#9095a8;text-align:left">'+seg.emoji+' '+seg.label+'</div>'+
+      '<div style="font-size:.82rem;color:#e8eaf0;font-weight:500">'+seg.count+'</div>'+
+      '<div style="font-size:.75rem;color:#606472;width:36px;text-align:right">'+pct+'%</div>';
+    legend.appendChild(row);
+  });
 }
 </script>
 </body>
