@@ -387,6 +387,12 @@ var GD_API_KEY = "AIzaSyCD7Sv_3lbkh4viCbZN-8D8EJ61_01szNY";
 // Set this up once: see instructions in the guides folder.
 var GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTFnCXDZiKUrvhmoEeU1U8Y2m-8arF2vFl6UNWYOKKcoQoO1RyNJUJTuL_T10vwCWfgQ/exec";
 
+// Alias lookup — maps email prefix to contributor key (CSV filename stem)
+var ALIASES = ["apeitersen","ajohannesen","abenavent","aklapp","bkristiansen",
+               "chartvig","cclausen","dschmidt","dskourup","fpreis","jrommer",
+               "jjohansen","jchristensen","jkarlsen","jlamm","mbmikkelsen",
+               "nhesdorf","obarthelemy"];
+
 // ── State ─────────────────────────────────────────────────────────
 var S = {user:null,queue:[],scores:{},idx:0,total:0,history:[],testMode:false};
 
@@ -434,34 +440,37 @@ async function signIn(){
 
   btn.disabled=true; btn.textContent="Signing in…";
 
-  // Hash the entered password and compare
-  var entered=await sha256(password);
-  if(entered!==PASSWORD_HASH){
-    showAuthErr("Incorrect password. Please try again.");
-    btn.disabled=false; btn.textContent="Sign in";
-    return;
-  }
-
-  // Auth passed — resolve contributor alias from email prefix
-  var prefix=email.split("@")[0].toLowerCase();
-  if(ALIASES.indexOf(prefix)===-1){
-    showAuthErr("No connections found for this account. Contact Florian.");
-    btn.disabled=false; btn.textContent="Sign in";
-    return;
-  }
-  S.user={email:email, contributor:prefix};
-  document.getElementById("ob-user").textContent=email;
-  btn.disabled=false; btn.textContent="Sign in";
-
-  // Pre-load CSV in background while user reads onboarding
-  show("s-load");
-  document.getElementById("load-txt").textContent="Loading your connections…";
   try{
+    // Hash the entered password and compare
+    var entered=await sha256(password);
+    if(entered!==PASSWORD_HASH){
+      showAuthErr("Incorrect password. Please try again.");
+      btn.disabled=false; btn.textContent="Sign in";
+      return;
+    }
+
+    // Auth passed — resolve contributor alias from email prefix
+    var prefix=email.split("@")[0].toLowerCase();
+    if(ALIASES.indexOf(prefix)===-1){
+      showAuthErr("No connections found for this account. Contact Florian.");
+      btn.disabled=false; btn.textContent="Sign in";
+      return;
+    }
+    S.user={email:email, contributor:prefix};
+    document.getElementById("ob-user").textContent=email;
+    btn.disabled=false; btn.textContent="Sign in";
+
+    // Load CSV
+    show("s-load");
+    document.getElementById("load-txt").textContent="Loading your connections…";
     S._allRows=await loadCSVFromDrive();
     show("s-onboard");
+
   }catch(e){
+    console.error("Sign-in error:",e);
+    showAuthErr("Sign-in error: "+e.message);
+    btn.disabled=false; btn.textContent="Sign in";
     show("s-auth");
-    showAuthErr("Could not load data: "+e.message+". Check your internet connection.");
   }
 }
 
