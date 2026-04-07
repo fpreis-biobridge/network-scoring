@@ -354,6 +354,21 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 
 <div class="toast" id="toast"></div>
 
+<!-- Save error blocking overlay -->
+<div id="save-error-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;text-align:center">
+  <div style="font-size:2rem">⚠️</div>
+  <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--txt)">Score not saved</div>
+  <p style="color:var(--muted);font-size:.9rem;max-width:280px;line-height:1.6">Your score could not be saved to SharePoint. This may be a temporary network issue.</p>
+  <button id="btn-retry-save" style="background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Retry</button>
+  <button id="btn-skip-save" style="background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:12px 32px;font-size:.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Save locally and continue</button>
+  <p style="color:var(--muted);font-size:.75rem;max-width:280px;line-height:1.5">If you continue without saving, your score for this contact is stored on this device only. Please let Florian know if this keeps happening.</p>
+</div>
+
+<!-- Session expired banner (shown before redirect) -->
+<div id="session-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--acc);color:#fff;padding:10px 20px;font-size:.85rem;text-align:center;z-index:300">
+  Your session has expired. Signing you back in automatically…
+</div>
+
 <script>
 // ── Config ────────────────────────────────────────────────────────
 var DOMAIN    = "biobridgepartners.com";
@@ -365,7 +380,7 @@ var SP_SCOPES = ["https://biobridgepartners.sharepoint.com/.default"];
 var msalCfg = {
   auth:{clientId:APP_CONFIG.AZURE_CLIENT_ID,
     authority:"https://login.microsoftonline.com/"+APP_CONFIG.AZURE_TENANT_ID,
-    redirectUri:window.location.origin+window.location.pathname},
+    redirectUri:"https://biobridge-partners.github.io/network-scoring/"},
   cache:{cacheLocation:"sessionStorage"}
 };
 var msalApp = (typeof msal!=="undefined") ? new msal.PublicClientApplication(msalCfg) : null;
@@ -461,7 +476,40 @@ function obGo(n){
 }
 
 // ── SharePoint ────────────────────────────────────────────────────
+async function refreshToken(){
+  if(!msalApp) return;
+  try{
+    var accs=msalApp.getAllAccounts();
+    if(!accs.length) throw new Error("no account");
+    var result=await msalApp.acquireTokenSilent({scopes:SP_SCOPES,account:accs[0]});
+    S.token=result.accessToken;
+  }catch(e){
+    // Silent refresh failed — token is stale, need re-login
+    console.warn("Token refresh failed, re-authenticating:",e.message);
+    showSessionExpiredBanner();
+    await msalApp.loginRedirect({scopes:SP_SCOPES});
+  }
+}
+
+function showSessionExpiredBanner(){
+  var el=document.getElementById("session-banner");
+  if(el) el.style.display="flex";
+}
+
 async function spReq(path,method,body){
+  // Refresh token proactively if we have msalApp
+  if(msalApp){
+    try{
+      var accs=msalApp.getAllAccounts();
+      if(accs.length){
+        var result=await msalApp.acquireTokenSilent({scopes:SP_SCOPES,account:accs[0]});
+        S.token=result.accessToken;
+      }
+    }catch(e){
+      // Token refresh failed — try to re-authenticate silently
+      await refreshToken();
+    }
+  }
   var opts={method:method||"GET",headers:{Authorization:"Bearer "+S.token,"Content-Type":"application/json",Accept:"application/json"}};
   if(body) opts.body=JSON.stringify(body);
   var r=await fetch("https://graph.microsoft.com/v1.0"+path,opts);
@@ -493,11 +541,41 @@ async function loadScores(contrib){
   return sc;
 }
 async function saveScore(uid,score,date){
-  try{
-    var sid=await getSiteId(),lid=await ensureList(),ex=S.scores[uid];
-    if(ex&&ex.itemId) await spReq("/sites/"+sid+"/lists/"+lid+"/items/"+ex.itemId+"/fields","PATCH",{score:String(score),score_date:date});
-    else await spReq("/sites/"+sid+"/lists/"+lid+"/items","POST",{fields:{unique_id:uid,contributor:S.user.contributor,score:String(score),score_date:date}});
-  }catch(e){console.warn("save:",e.message);}
+  var maxRetries=3, attempt=0;
+  while(attempt<maxRetries){
+    try{
+      var sid=await getSiteId(),lid=await ensureList(),ex=S.scores[uid];
+      if(ex&&ex.itemId) await spReq("/sites/"+sid+"/lists/"+lid+"/items/"+ex.itemId+"/fields","PATCH",{score:String(score),score_date:date});
+      else await spReq("/sites/"+sid+"/lists/"+lid+"/items","POST",{fields:{unique_id:uid,contributor:S.user.contributor,score:String(score),score_date:date}});
+      return; // success
+    }catch(e){
+      attempt++;
+      console.warn("Save attempt "+attempt+" failed:",e.message);
+      if(attempt<maxRetries){
+        await new Promise(function(r){setTimeout(r,1500*attempt);}); // back-off
+      } else {
+        // All retries exhausted — show blocking error overlay
+        showSaveError(uid,score,date);
+        return;
+      }
+    }
+  }
+}
+
+function showSaveError(uid,score,date){
+  var overlay=document.getElementById("save-error-overlay");
+  if(!overlay)return;
+  overlay.style.display="flex";
+  // Wire up retry button
+  document.getElementById("btn-retry-save").onclick=async function(){
+    overlay.style.display="none";
+    await saveScore(uid,score,date);
+  };
+  // Wire up skip button — score stays in localStorage but not SharePoint
+  document.getElementById("btn-skip-save").onclick=function(){
+    overlay.style.display="none";
+    toast("Score saved locally only — please retry later");
+  };
 }
 async function loadCSV(){
   var sid=await getSiteId(),drvs=await spReq("/sites/"+sid+"/drives"),drv=drvs.value[0];
@@ -717,6 +795,21 @@ function doneScreen(){
 </html>  
 
 <div class="toast" id="toast"></div>
+
+<!-- Save error blocking overlay -->
+<div id="save-error-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;text-align:center">
+  <div style="font-size:2rem">⚠️</div>
+  <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--txt)">Score not saved</div>
+  <p style="color:var(--muted);font-size:.9rem;max-width:280px;line-height:1.6">Your score could not be saved to SharePoint. This may be a temporary network issue.</p>
+  <button id="btn-retry-save" style="background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Retry</button>
+  <button id="btn-skip-save" style="background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:12px 32px;font-size:.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Save locally and continue</button>
+  <p style="color:var(--muted);font-size:.75rem;max-width:280px;line-height:1.5">If you continue without saving, your score for this contact is stored on this device only. Please let Florian know if this keeps happening.</p>
+</div>
+
+<!-- Session expired banner (shown before redirect) -->
+<div id="session-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--acc);color:#fff;padding:10px 20px;font-size:.85rem;text-align:center;z-index:300">
+  Your session has expired. Signing you back in automatically…
+</div>
 
 
 </body>
