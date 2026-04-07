@@ -1,0 +1,1 @@
+var GD_API_KEY = "AIzaSyCD7Sv_3lbkh4viCbZN-8D8EJ61_01szNY";
