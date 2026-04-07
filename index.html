@@ -690,7 +690,7 @@ async function startScoring(){
 
     // Only show unscored contacts
     S.queue=conns.filter(function(c){return !S.scores[c.unique_id];});
-    S.total=S.queue.length;
+    S.total=conns.length;  // total includes already-scored contacts for accurate progress bar
     S.idx=0;
 
     document.getElementById("sc-name").textContent=contributor;
@@ -869,10 +869,14 @@ function showSaveError(uid,score,date){
 
 // ── Progress ──────────────────────────────────────────────────────
 function updateProg(){
-  var pct=S.total>0?(S.idx/S.total)*100:0;
+  // Already scored from previous sessions + swiped so far this session
+  var prevScored=Object.keys(S.scores).length;
+  var totalScored=prevScored; // idx advances S.scores in sync
+  var pct=S.total>0?(totalScored/S.total)*100:0;
   document.getElementById("prog").style.width=pct+"%";
-  document.getElementById("sc-scored").textContent=Object.values(S.scores).filter(function(s){return s.score!=="r";}).length;
-  document.getElementById("sc-left").textContent=Math.max(0,S.total-S.idx);
+  // Scored counter: all scored contacts regardless of score type
+  document.getElementById("sc-scored").textContent=totalScored;
+  document.getElementById("sc-left").textContent=Math.max(0,S.total-totalScored);
 }
 
 // ── Done ──────────────────────────────────────────────────────────
