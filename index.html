@@ -322,13 +322,13 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     <div class="hint" id="h-rt"><div class="hint-ico">🤝</div><div class="hint-lbl" style="color:var(--rt)">Warm</div></div>
   </div>
   <div id="score-hint" style="padding:8px 0 14px;font-size:.65rem;color:var(--muted);text-align:center;flex-shrink:0;opacity:.6;letter-spacing:.03em">
-    Use arrow keys to score
+    Arrow keys to score · Ctrl+Z to undo
   </div>
   <script>
     (function(){
       var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
       var el = document.getElementById('score-hint');
-      if(el) el.textContent = isMobile ? 'Swipe to score' : 'Use arrow keys to score';
+      if(el) el.textContent = isMobile ? 'Swipe to score' : 'Arrow keys to score · Ctrl+Z to undo';
     })();
   </script>
 </div>
@@ -802,6 +802,7 @@ document.addEventListener("touchstart", function(e){
 // Keyboard
 document.addEventListener("keydown",function(e){
   if(document.getElementById("s-score").classList.contains("off"))return;
+  if(e.key==="z"&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();return;}
   var map={"ArrowLeft":1,"ArrowRight":2,"ArrowUp":3,"ArrowDown":"r"};
   if(map[e.key]===undefined)return;
   e.preventDefault();
