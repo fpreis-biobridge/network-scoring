@@ -550,7 +550,8 @@ async function loadCSVFromDrive(){
     throw new Error("CSV file ID not configured — run filter.py and update GD_CSV_FILE_ID in the app");
   }
   // Public file direct download URL
-  var url="https://drive.google.com/uc?export=download&id="+GD_CSV_FILE_ID;
+  // Use Drive API v3 (supports CORS) instead of direct download URL (blocked by CORS)
+  var url="https://www.googleapis.com/drive/v3/files/"+GD_CSV_FILE_ID+"?alt=media&key="+GD_API_KEY;
   var r=await fetch(url);
   if(!r.ok) throw new Error("Could not load CSV from Google Drive (status "+r.status+")");
   var text=await r.text();
