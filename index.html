@@ -199,7 +199,17 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
     </div>
     <div class="auth-field">
       <label>Password</label>
-      <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" />
+      <div style="position:relative">
+        <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" style="padding-right:42px" />
+        <button id="pwd-eye" type="button"
+          style="position:absolute;right:0;top:0;bottom:0;width:40px;background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem"
+          onmousedown="document.getElementById('auth-password').type='text'"
+          onmouseup="document.getElementById('auth-password').type='password'"
+          onmouseleave="document.getElementById('auth-password').type='password'"
+          ontouchstart="document.getElementById('auth-password').type='text'"
+          ontouchend="document.getElementById('auth-password').type='password'"
+          tabindex="-1">👁</button>
+      </div>
     </div>
     <button class="btn-signin" id="btn-signin" onclick="signIn()">Sign in</button>
     <div id="auth-err" style="color:#ef4444;font-size:.82rem;margin-top:4px;text-align:center;line-height:1.5;display:none"></div>
@@ -384,7 +394,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 <script>
 // ── Config ────────────────────────────────────────────────────────
 var DOMAIN        = "biobridgepartners.com";
-var PASSWORD_HASH = "b64d1ab06461cc3a4de63ea78f3c0c2a4e3a1ef7fd2e6b8e90df6f8b5c3e7a12"; // SHA-256 of NetworkScoring2026!
+var PASSWORD_HASH = "396134a1b7cd5151604c0be3a9a37a4ca563a7a673447333b906a49623b9cf0b"; // SHA-256 of NetworkScoring2026!
 
 // Google Drive folder ID (from your shared folder link)
 var GD_FOLDER_ID  = "1eNehnbQCjRLgVUff1Hes1h9F5fg13KPh";
