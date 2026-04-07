@@ -415,6 +415,12 @@ var GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTFnCXDZiKUrvhmoEe
 // ── State ─────────────────────────────────────────────────────────
 var S = {user:null,queue:[],scores:{},idx:0,total:0,history:[],testMode:false};
 
+// ── Write queue — scores waiting to be persisted to the Sheet ────
+// Each entry: {uid, score, date, attempts}
+var Q = {pending:[],running:false,blocked:false};
+var FLUSH_DELAY = 1500; // ms of inactivity before triggering a flush
+var _flushTimer = null;
+
 // ── Helpers ───────────────────────────────────────────────────────
 function show(id){
   document.querySelectorAll(".screen").forEach(function(el){el.classList.add("off");});
@@ -591,20 +597,89 @@ async function loadScoresFromDrive(contributor){
   }
 }
 
-// Append a new score row to the scores_all Google Sheet via Apps Script Web App
-async function saveScoreToDrive(uid, score, date){
+// ── Low-level write to Apps Script ────────────────────────────────
+async function sheetWrite(params){
   if(S.testMode) return;
-  if(!GD_SCRIPT_URL){
-    throw new Error("Apps Script URL not configured (GD_SCRIPT_URL is empty)");
-  }
-  var payload={uid:uid, contributor:S.user.contributor, score:String(score), date:date};
-  var url=GD_SCRIPT_URL+"?"+Object.keys(payload).map(function(k){
-    return encodeURIComponent(k)+"="+encodeURIComponent(payload[k]);
+  var url=GD_SCRIPT_URL+"?"+Object.keys(params).map(function(k){
+    return encodeURIComponent(k)+"="+encodeURIComponent(params[k]);
   }).join("&");
-  // Apps Script returns CORS headers so we can read the response directly
   var r=await fetch(url,{method:"GET"});
   var text=await r.text();
-  if(text.trim()!=="ok") throw new Error("Unexpected response from save: "+text);
+  if(text.trim()!=="ok") throw new Error("Sheet write failed: "+text);
+}
+
+// ── Write queue engine ─────────────────────────────────────────────
+// Scores are committed optimistically (card advances immediately).
+// The queue drains in the background. If a write fails after 3 attempts,
+// the app blocks and shows the error overlay.
+function queueScore(uid, score, date){
+  var QUEUE_KEY="bbq_"+S.user.contributor;
+  Q.pending.push({uid:uid, score:score, date:date, attempts:0});
+  try{localStorage.setItem(QUEUE_KEY, JSON.stringify(Q.pending));}catch(e){}
+  // Schedule a flush after a short pause in swiping.
+  // Rapid swipes accumulate in the queue — the flush sends everything at once.
+  // Slow swipes fire after each pause — typically just one item.
+  clearTimeout(_flushTimer);
+  _flushTimer=setTimeout(function(){drainQueue();}, FLUSH_DELAY);
+}
+
+async function drainQueue(){
+  if(Q.running || Q.blocked || Q.pending.length===0) return;
+  Q.running=true;
+  while(Q.pending.length>0 && !Q.blocked){
+    // Take everything currently in the queue as one batch —
+    // if the user swiped fast, this is large; if slow, typically just 1.
+    var batch=Q.pending.slice(0);
+    try{
+      if(batch.length===1){
+        // Single item — use simple params for compatibility
+        await sheetWrite({uid:batch[0].uid, contributor:S.user.contributor,
+                          score:String(batch[0].score), date:batch[0].date});
+      } else {
+        // Multiple items — send as batch
+        var batchPayload=batch.map(function(item){
+          return {uid:item.uid, contributor:S.user.contributor,
+                  score:String(item.score), date:item.date};
+        });
+        await sheetWrite({batch:JSON.stringify(batchPayload)});
+      }
+      // Success — remove written items from queue
+      Q.pending.splice(0,batch.length);
+      var QUEUE_KEY="bbq_"+S.user.contributor;
+      try{localStorage.setItem(QUEUE_KEY, JSON.stringify(Q.pending));}catch(e){}
+    }catch(e){
+      // Increment attempts on the whole batch
+      batch.forEach(function(item){item.attempts++;});
+      var maxAttempts=Math.max.apply(null,batch.map(function(i){return i.attempts;}));
+      if(maxAttempts>=3){
+        Q.blocked=true;
+        Q.running=false;
+        showSaveError(batch[0].uid, batch[0].score, batch[0].date);
+        return;
+      }
+      await new Promise(function(r){setTimeout(r, 1000*maxAttempts);});
+    }
+  }
+  Q.running=false;
+}
+
+function resumeQueue(){
+  Q.blocked=false;
+  // Reset attempts on all pending items before retrying
+  Q.pending.forEach(function(item){item.attempts=0;});
+  drainQueue();
+}
+
+// Restore any unwritten scores from a previous session
+function restoreQueue(contributor){
+  var QUEUE_KEY="bbq_"+contributor;
+  try{
+    var saved=JSON.parse(localStorage.getItem(QUEUE_KEY)||"[]");
+    if(saved.length){
+      Q.pending=saved;
+      console.log("Restored "+saved.length+" unwritten scores from previous session");
+    }
+  }catch(e){}
 }
 
 // ── CSV parser ────────────────────────────────────────────────────
@@ -647,9 +722,21 @@ async function startScoring(){
 
     document.getElementById("load-txt").textContent="Loading your previous scores…";
 
-    // Load scores from Sheet only — localStorage is not used as a score source.
-    // A contact is only considered scored if its score exists in the Sheet.
+    // Load confirmed scores from Sheet
     S.scores=await loadScoresFromDrive(contributor);
+
+    // Restore any scores that were queued locally but not yet written to the Sheet
+    // (e.g. from a previous session that lost connection before draining)
+    restoreQueue(contributor);
+    // Treat queued-but-unwritten scores as "scored" so they don't re-appear
+    // They will be written to the Sheet as soon as connection allows
+    Q.pending.forEach(function(item){
+      if(!S.scores[item.uid]){
+        S.scores[item.uid]={score:item.score, score_date:item.date, pending:true};
+      }
+    });
+    // Start draining any restored queue items
+    if(Q.pending.length) drainQueue();
 
     // Sort: priority accounts first, then life science relevance
     conns.sort(function(a,b){
@@ -760,7 +847,7 @@ function attachSwipe(card){
 function fly(card,dir,score){
   var tx={lt:"translate(-540px,20px) rotate(-22deg)",rt:"translate(540px,20px) rotate(22deg)",up:"translate(0,-540px)",dn:"translate(0,540px)"};
   card.style.cssText+=";transition:transform .35s ease,opacity .35s ease;transform:"+tx[dir]+";opacity:0;pointer-events:none";
-  setTimeout(async function(){await commit(score);card.remove();render();},360);
+  setTimeout(function(){commit(score);card.remove();render();},360);
 }
 
 // Prevent pull-to-refresh on iOS/Android
@@ -789,21 +876,18 @@ document.addEventListener("keydown",function(e){
 });
 
 // ── Commit ────────────────────────────────────────────────────────
-async function commit(score){
+function commit(score){
   if(S.idx>=S.queue.length)return;
+  if(Q.blocked) return; // don't advance if queue is stuck
   var c=S.queue[S.idx],today=new Date().toISOString().split("T")[0];
   toast({1:"Cold 👋",2:"Warm 🤝",3:"Trusted ⭐","r":"Removed 🗑️"}[score]||String(score));
-  try{
-    await saveScoreToDrive(c.unique_id,score,today);
-    // Save confirmed — advance
-    S.scores[c.unique_id]={score:score,score_date:today};
-    S.history.push({uid:c.unique_id,idx:S.idx,score:score,date:today});
-    S.idx++;
-    updateProg();
-  }catch(e){
-    console.warn("Save failed:",e.message);
-    showSaveError(c.unique_id,score,today);
-  }
+  // Advance immediately — optimistic UI
+  S.scores[c.unique_id]={score:score,score_date:today,pending:true};
+  S.history.push({uid:c.unique_id,idx:S.idx,score:score,date:today});
+  S.idx++;
+  updateProg();
+  // Queue the write — happens in background
+  queueScore(c.unique_id,score,today);
 }
 
 async function undo(){
@@ -814,15 +898,17 @@ async function undo(){
   updateProg();
   render();
   toast("Undone ↩");
-  // Delete from Sheet in background (best effort)
-  try{
-    if(GD_SCRIPT_URL){
-      var url=GD_SCRIPT_URL+"?action=delete&uid="+encodeURIComponent(last.uid)+
-              "&contributor="+encodeURIComponent(S.user.contributor);
-      await fetch(url,{method:"GET"});
-    }
-  }catch(e){
-    console.warn("Undo sheet delete failed:",e.message);
+  // Check if score is still in the pending queue (not yet written)
+  var qIdx=Q.pending.findIndex(function(item){return item.uid===last.uid;});
+  if(qIdx!==-1){
+    // Still queued — just remove it, no Sheet call needed
+    Q.pending.splice(qIdx,1);
+    var QUEUE_KEY="bbq_"+S.user.contributor;
+    try{localStorage.setItem(QUEUE_KEY,JSON.stringify(Q.pending));}catch(e){}
+  } else {
+    // Already written to Sheet — delete it there (best effort, background)
+    sheetWrite({action:"delete", uid:last.uid, contributor:S.user.contributor})
+      .catch(function(e){console.warn("Undo sheet delete failed:",e.message);});
   }
 }
 
@@ -830,18 +916,11 @@ function showSaveError(uid,score,date){
   var overlay=document.getElementById("save-error-overlay");
   if(!overlay)return;
   overlay.style.display="flex";
-  document.getElementById("btn-retry-save").onclick=async function(){
+  document.getElementById("btn-retry-save").onclick=function(){
     overlay.style.display="none";
-    try{
-      await saveScoreToDrive(uid,score,date);
-      S.scores[uid]={score:score,score_date:date};
-      S.history.push({uid:uid,idx:S.idx,score:score,date:date});
-      S.idx++;
-      updateProg();
-      render();
-    }catch(e){
-      showSaveError(uid,score,date);
-    }
+    // Reset attempt count on the blocked item and resume the queue
+    if(Q.pending.length>0) Q.pending[0].attempts=0;
+    resumeQueue();
   };
 }
 
