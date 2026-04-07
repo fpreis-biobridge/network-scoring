@@ -398,12 +398,11 @@ var PASSWORD_HASH = "396134a1b7cd5151604c0be3a9a37a4ca563a7a673447333b906a49623b
 // Google Drive folder ID (from your shared folder link)
 var GD_FOLDER_ID  = "1eNehnbQCjRLgVUff1Hes1h9F5fg13KPh";
 
-// File ID for to_score_latest.csv — set this after first run of filter.py.
-// filter.py prints the ID when it uploads the file.
+// Google Drive file ID for to_score_latest.csv — set after first run of filter.py.
 var GD_CSV_FILE_ID = "1prrnmmm8kLPicUyGkn_Jtuf2G0IAJ3wu";
 
-// Google Sheet ID for scores_all — used to save and read back scores.
-var GD_SHEET_ID    = "12hhxg5o2wft_Tn4y3A9m4VGEpqROFZJNd8EcVOqtfWg";
+// Google Sheet ID for scores_all — scores are written here by the app.
+var GD_SHEET_ID = "12hhxg5o2wft_Tn4y3A9m4VGEpqROFZJNd8EcVOqtfWg";
 
 // Google API key — needed to append rows to the scores sheet.
 // Use the same key already in your api_key.env (GOOGLE_API_KEY).
@@ -548,16 +547,9 @@ async function loadCSVFromDrive(){
   if(!GD_CSV_FILE_ID){
     throw new Error("CSV file ID not configured — run filter.py and update GD_CSV_FILE_ID in the app");
   }
-  // Public file direct download URL
-  // Export CSV via Google Drive's export endpoint — works for publicly shared files
-  // No API key needed here since the file is shared "anyone with link can view"
-  var url="https://docs.google.com/uc?export=download&id="+GD_CSV_FILE_ID+"&confirm=t";
-  var r=await fetch(url,{mode:"cors"});
-  if(!r.ok){
-    // Fallback: try the spreadsheet export format
-    url="https://docs.google.com/spreadsheets/d/"+GD_CSV_FILE_ID+"/export?format=csv";
-    r=await fetch(url,{mode:"cors"});
-  }
+  // Use Drive API v3 with API key — requires key to have no HTTP referrer restrictions
+  var url="https://www.googleapis.com/drive/v3/files/"+GD_CSV_FILE_ID+"?alt=media&key="+GD_API_KEY;
+  var r=await fetch(url);
   if(!r.ok) throw new Error("Could not load contact list (status "+r.status+")");
   var text=await r.text();
   return parseCSV(text);
