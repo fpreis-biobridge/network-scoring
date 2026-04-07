@@ -597,25 +597,14 @@ async function saveScoreToDrive(uid, score, date){
   if(!GD_SCRIPT_URL){
     throw new Error("Apps Script URL not configured (GD_SCRIPT_URL is empty)");
   }
-  // POST to Apps Script which writes to the Sheet server-side (no OAuth needed in browser)
   var payload={uid:uid, contributor:S.user.contributor, score:String(score), date:date};
   var url=GD_SCRIPT_URL+"?"+Object.keys(payload).map(function(k){
     return encodeURIComponent(k)+"="+encodeURIComponent(payload[k]);
   }).join("&");
-  // Apps Script requires GET or no-cors POST — use no-cors fetch (response is opaque but write succeeds)
-  await fetch(url,{method:"GET",mode:"no-cors"});
-  // no-cors means we can't read the response, so we assume success
-  // If it fails silently, the retry will catch it on reload when scores don't appear
-}
-
-// Verify a score was actually saved by re-reading the sheet
-async function verifyScoreSaved(uid, contributor){
-  try{
-    var saved=await loadScoresFromDrive(contributor);
-    return !!saved[uid];
-  }catch(e){
-    return false;
-  }
+  // Apps Script returns CORS headers so we can read the response directly
+  var r=await fetch(url,{method:"GET"});
+  var text=await r.text();
+  if(text.trim()!=="ok") throw new Error("Unexpected response from save: "+text);
 }
 
 // ── CSV parser ────────────────────────────────────────────────────
@@ -805,12 +794,8 @@ async function commit(score){
   var c=S.queue[S.idx],today=new Date().toISOString().split("T")[0];
   toast({1:"Cold 👋",2:"Warm 🤝",3:"Trusted ⭐","r":"Removed 🗑️"}[score]||String(score));
   try{
-    // Send to Sheet first
     await saveScoreToDrive(c.unique_id,score,today);
-    // Verify it actually landed (re-read Sheet)
-    var saved=await verifyScoreSaved(c.unique_id,S.user.contributor);
-    if(!saved) throw new Error("Score not found in sheet after write");
-    // Only advance after confirmed save
+    // Save confirmed — advance
     S.scores[c.unique_id]={score:score,score_date:today};
     S.history.push({uid:c.unique_id,idx:S.idx,score:score,date:today});
     S.idx++;
@@ -834,7 +819,7 @@ async function undo(){
     if(GD_SCRIPT_URL){
       var url=GD_SCRIPT_URL+"?action=delete&uid="+encodeURIComponent(last.uid)+
               "&contributor="+encodeURIComponent(S.user.contributor);
-      await fetch(url,{method:"GET",mode:"no-cors"});
+      await fetch(url,{method:"GET"});
     }
   }catch(e){
     console.warn("Undo sheet delete failed:",e.message);
@@ -849,8 +834,6 @@ function showSaveError(uid,score,date){
     overlay.style.display="none";
     try{
       await saveScoreToDrive(uid,score,date);
-      var saved=await verifyScoreSaved(uid,S.user.contributor);
-      if(!saved) throw new Error("Still not in sheet");
       S.scores[uid]={score:score,score_date:date};
       S.history.push({uid:uid,idx:S.idx,score:score,date:date});
       S.idx++;
