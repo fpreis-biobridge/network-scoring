@@ -385,10 +385,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 <div id="save-error-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;text-align:center">
   <div style="font-size:2rem">⚠️</div>
   <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--txt)">Score not saved</div>
-  <p style="color:var(--muted);font-size:.9rem;max-width:280px;line-height:1.6">Your score could not be saved to Google Drive. This may be a temporary network issue.</p>
+  <p style="color:var(--muted);font-size:.9rem;max-width:280px;line-height:1.6">Your score could not be saved. Please check your connection and try again.</p>
   <button id="btn-retry-save" style="background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Retry</button>
-  <button id="btn-skip-save" style="background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:12px 32px;font-size:.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Save locally and continue</button>
-  <p style="color:var(--muted);font-size:.75rem;max-width:280px;line-height:1.5">If you continue without saving, your score for this contact is stored on this device only. Please let Florian know if this keeps happening.</p>
+  <p style="color:var(--muted);font-size:.75rem;max-width:280px;line-height:1.5">Do not close the app until your score has been saved.</p>
 </div>
 
 <script>
@@ -599,7 +598,7 @@ async function saveScoreToDrive(uid, score, date){
   }
   var row=[uid, S.user.contributor, score, date];
   var url="https://sheets.googleapis.com/v4/spreadsheets/"+GD_SHEET_ID+
-          "/values/Sheet1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS&key="+GD_API_KEY;
+          "/values/A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS&key="+GD_API_KEY;
   var r=await fetch(url,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -766,7 +765,7 @@ function attachSwipe(card){
 function fly(card,dir,score){
   var tx={lt:"translate(-540px,20px) rotate(-22deg)",rt:"translate(540px,20px) rotate(22deg)",up:"translate(0,-540px)",dn:"translate(0,540px)"};
   card.style.cssText+=";transition:transform .35s ease,opacity .35s ease;transform:"+tx[dir]+";opacity:0;pointer-events:none";
-  setTimeout(function(){commit(score);card.remove();render();},360);
+  setTimeout(async function(){await commit(score);card.remove();render();},360);
 }
 
 // Prevent pull-to-refresh on iOS/Android
@@ -795,21 +794,24 @@ document.addEventListener("keydown",function(e){
 });
 
 // ── Commit ────────────────────────────────────────────────────────
-function commit(score){
+async function commit(score){
   if(S.idx>=S.queue.length)return;
   var c=S.queue[S.idx],today=new Date().toISOString().split("T")[0];
   S.history.push({uid:c.unique_id,idx:S.idx});
   S.scores[c.unique_id]={score:score,score_date:today};
   toast({1:"Cold 👋",2:"Warm 🤝",3:"Trusted ⭐","r":"Removed 🗑️"}[score]||String(score));
-  // Save to localStorage immediately (always works)
+  // Save to localStorage as immediate local backup
   localStorage.setItem("bb_"+S.user.contributor,JSON.stringify(S.scores));
-  // Save to Google Drive in background
-  saveScoreToDrive(c.unique_id,score,today).catch(function(e){
-    console.warn("Drive save failed:",e.message);
+  // Save to Sheets — must succeed before advancing
+  try{
+    await saveScoreToDrive(c.unique_id,score,today);
+    S.idx++;
+    updateProg();
+  }catch(e){
+    console.warn("Save failed:",e.message);
+    // Do not advance — show blocking error until saved
     showSaveError(c.unique_id,score,today);
-  });
-  S.idx++;
-  updateProg();
+  }
 }
 
 function undo(){
@@ -830,10 +832,6 @@ function showSaveError(uid,score,date){
   document.getElementById("btn-retry-save").onclick=async function(){
     overlay.style.display="none";
     await saveScoreToDrive(uid,score,date).catch(function(e){showSaveError(uid,score,date);});
-  };
-  document.getElementById("btn-skip-save").onclick=function(){
-    overlay.style.display="none";
-    toast("Score saved locally only — please retry later");
   };
 }
 
