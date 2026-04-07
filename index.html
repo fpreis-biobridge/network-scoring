@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Network Scoring</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='50' font-size='80' text-anchor='middle' dominant-baseline='central'>🚀</text></svg>">
+<script src="app_config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -407,7 +408,8 @@ var GD_SHEET_ID    = "12hhxg5o2wft_Tn4y3A9m4VGEpqROFZJNd8EcVOqtfWg";
 
 // Google API key — needed to append rows to the scores sheet.
 // Use the same key already in your api_key.env (GOOGLE_API_KEY).
-var GD_API_KEY     = "AIzaSyCD7Sv_3lbkh4viCbZN-8D8EJ61_01szNY";
+// GD_API_KEY is loaded from app_config.js (not committed to GitHub)
+var GD_API_KEY = (typeof APP_GD_API_KEY !== "undefined") ? APP_GD_API_KEY : "";
 
 // ── State ─────────────────────────────────────────────────────────
 var S = {user:null,queue:[],scores:{},idx:0,total:0,history:[],testMode:false};
