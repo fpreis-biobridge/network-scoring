@@ -864,25 +864,4 @@ function doneScreen(){
 }
 </script>
 </body>
-</html>  
-
-<div class="toast" id="toast"></div>
-
-<!-- Save error blocking overlay -->
-<div id="save-error-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;text-align:center">
-  <div style="font-size:2rem">⚠️</div>
-  <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--txt)">Score not saved</div>
-  <p style="color:var(--muted);font-size:.9rem;max-width:280px;line-height:1.6">Your score could not be saved to SharePoint. This may be a temporary network issue.</p>
-  <button id="btn-retry-save" style="background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Retry</button>
-  <button id="btn-skip-save" style="background:transparent;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:12px 32px;font-size:.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px">Save locally and continue</button>
-  <p style="color:var(--muted);font-size:.75rem;max-width:280px;line-height:1.5">If you continue without saving, your score for this contact is stored on this device only. Please let Florian know if this keeps happening.</p>
-</div>
-
-<!-- Session expired banner (shown before redirect) -->
-<div id="session-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--acc);color:#fff;padding:10px 20px;font-size:.85rem;text-align:center;z-index:300">
-  Your session has expired. Signing you back in automatically…
-</div>
-
-
-</body>
 </html>
