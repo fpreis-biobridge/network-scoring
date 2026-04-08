@@ -753,7 +753,7 @@ function buildCard(c){
     '</div>'+
     '<div class="pdiv"></div>'+
     '<div class="ptags">'+
-      (c.target_account?'<span class="ptag tgt">🎯 Priority</span>':'')+
+      (c.is_priority==="yes"?'<span class="ptag tgt">🎯 Priority</span>':'')+
       (c.seniority==="Senior"?'<span class="ptag snr">⭐ Senior</span>':'')+
       '<span class="ptag">Connected '+(c["Connected On"]||"—")+'</span>'+
     '</div>'+
