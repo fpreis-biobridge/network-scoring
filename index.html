@@ -379,6 +379,9 @@ var ALIASES = ["apeitersen","ajohannesen","abenavent","aklapp","bkristiansen",
                "jjohansen","jchristensen","jkarlsen","jlamm","mbmikkelsen",
                "nhesdorf","obarthelemy"];
 
+// Board members — only shown Senior contacts in the scoring interface
+var BOARD_ALIASES = ["apeitersen","chartvig","nhesdorf"];
+
 // ── State ─────────────────────────────────────────────────────────
 var S = {user:null,queue:[],scores:{},idx:0,total:0,history:[],testMode:false};
 
@@ -673,6 +676,12 @@ async function startScoring(){
       if(ta!==tb)return ta-tb;
       return (a.life_science_relevant==="yes"?0:1)-(b.life_science_relevant==="yes"?0:1);
     });
+
+    // Board members only see Senior contacts — filter out Mid/Junior for them
+    var isBoard=BOARD_ALIASES.indexOf(contributor)!==-1;
+    if(isBoard){
+      conns=conns.filter(function(c){return c.seniority==="Senior";});
+    }
 
     // Only show unscored contacts
     S.queue=conns.filter(function(c){return !S.scores[c.unique_id];});
