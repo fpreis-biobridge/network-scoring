@@ -354,6 +354,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--txt);
 <script>
 // ── Config ────────────────────────────────────────────────────────
 var DOMAIN        = "biobridgepartners.com";
+var ALLOWED_EMAILS = ["pernille.storm@access-elevate.com"];  // non-Biobridge exceptions
 // Per-user password hashes (SHA-256). Passwords are distributed individually.
 var PASSWORD_HASHES = {
   "apeitersen": "661a4b27c73deb49a55c92492325edb0f18c36137ffb82069f76e2f69e93e4ab",
@@ -450,7 +451,7 @@ async function signIn(){
 
   // Basic validation
   if(!email){showAuthErr("Please enter your email address.");return;}
-  if(!email.endsWith("@"+DOMAIN)){showAuthErr("Only @"+DOMAIN+" accounts are permitted.");return;}
+  if(!email.endsWith("@"+DOMAIN) && ALLOWED_EMAILS.indexOf(email)===-1){showAuthErr("Only @"+DOMAIN+" accounts are permitted.");return;}
   if(!password){showAuthErr("Please enter your password.");return;}
 
   btn.disabled=true; btn.textContent="Signing in…";
