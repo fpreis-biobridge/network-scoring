@@ -373,7 +373,8 @@ var PASSWORD_HASHES = {
   "jlamm": "36d2a2c68495092c1406bcf5364e6be8a52c678cc41779b447490277765c9272",
   "mbmikkelsen": "d4c848fd034aae2fb7b9ff77a2fc7a5133e0e4ea73feabecbda02cc5fed737f3",
   "nhesdorf": "b44f3696d96fb8712617f6a7e68aaab7595fc5623f9b8e15d049459e1ade6fa0",
-  "obarthelemy": "b1622332c62f7a2831f0e49532c383c200a402ce1c6f96609951916e5d68eff8"
+  "obarthelemy": "b1622332c62f7a2831f0e49532c383c200a402ce1c6f96609951916e5d68eff8",
+  "pstorm": "ba04cdc5b4134a58bdd652d17d36d28c456ddff4af4bfb2b30176411faf1d09b"
 };
 
 // Google Drive folder ID (from your shared folder link)
@@ -397,7 +398,12 @@ var GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTFnCXDZiKUrvhmoEe
 var ALIASES = ["apeitersen","ajohannesen","abenavent","aklapp","bkristiansen",
                "chartvig","cclausen","dschmidt","dskourup","fpreis","jrommer",
                "jjohansen","jchristensen","jkarlsen","jlamm","mbmikkelsen",
-               "nhesdorf","obarthelemy"];
+               "nhesdorf","obarthelemy","pstorm"];
+
+// Custom email→alias map for users whose email prefix differs from their alias
+var EMAIL_ALIAS_MAP = {
+  "pernille.storm": "pstorm"
+};
 
 // Board members — only shown Senior contacts in the scoring interface
 var BOARD_ALIASES = ["apeitersen","chartvig","nhesdorf"];
@@ -450,8 +456,9 @@ async function signIn(){
   btn.disabled=true; btn.textContent="Signing in…";
 
   try{
-    // Resolve alias from email prefix first
-    var prefix=email.split("@")[0].toLowerCase();
+    // Resolve alias from email prefix (check custom map first)
+    var rawPrefix=email.split("@")[0].toLowerCase();
+    var prefix=EMAIL_ALIAS_MAP[rawPrefix] || rawPrefix;
     if(ALIASES.indexOf(prefix)===-1){
       showAuthErr("No connections found for this account. Contact Florian.");
       btn.disabled=false; btn.textContent="Sign in";
