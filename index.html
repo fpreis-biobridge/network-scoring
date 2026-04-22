@@ -357,25 +357,25 @@ var DOMAIN        = "biobridgepartners.com";
 var ALLOWED_EMAILS = ["pernille.storm@access-elevate.com"];  // non-Biobridge exceptions
 // Per-user password hashes (SHA-256). Passwords are distributed individually.
 var PASSWORD_HASHES = {
-  "apeitersen": "661a4b27c73deb49a55c92492325edb0f18c36137ffb82069f76e2f69e93e4ab",
-  "ajohannesen": "94b1f4b8a06e7a8b58060062ea5d086a7eee6158071383fde6fc1f54cf7da3de",
-  "abenavent": "7e345c7b289ba8bb4da36a01d46e786e16c8ac259f5c765214496d32183a1f94",
-  "aklapp": "d6bd121a2732f4ab2064a28f001afe9c886fa40d2e198e19534ccee054b98fd0",
-  "bkristiansen": "25887e24435126694f6fa4250125d03cb1751544e245673a2aef4ad7fdb54bec",
-  "chartvig": "761ab81421107a2b1cf15921586fbe81f169857a15a17dd87523a8c458b8d169",
-  "cclausen": "75a62f3030e35bbb4b98f4957b46b88b046bac8646d4038e0a82109a5923685e",
-  "dschmidt": "7da6d03013499a9146425859a95484425235284ac4b9fb1d90f0d6b08c2cdea4",
-  "dskourup": "2bb2f8ac2d12bb3f550baeafd2c1afefaa47da258efa95dca76cbf35818600a3",
-  "fpreis": "c417d002489d375d27359c907bb9d3a662499105fcbec083ebb63ca1aaae05e1",
-  "jrommer": "404cd1e721cd90712e4aa8a43f474b0e469fd8b9884969a23f567a7d70941869",
-  "jjohansen": "1054f32a51ab1442dec610dfaba48a0a5b242b87a83d8451b530b1bdd6534d02",
-  "jchristensen": "6b107a3cf5f303572b3ef4377f7ac6c8fd1526da4af9ef41b1b2d5b26470b202",
-  "jkarlsen": "9fcb70209555877929c9d901dcb890447476dd896673a77c9ac2129d6309a29d",
-  "jlamm": "36d2a2c68495092c1406bcf5364e6be8a52c678cc41779b447490277765c9272",
-  "mbmikkelsen": "d4c848fd034aae2fb7b9ff77a2fc7a5133e0e4ea73feabecbda02cc5fed737f3",
-  "nhesdorf": "b44f3696d96fb8712617f6a7e68aaab7595fc5623f9b8e15d049459e1ade6fa0",
-  "obarthelemy": "b1622332c62f7a2831f0e49532c383c200a402ce1c6f96609951916e5d68eff8",
-  "pstorm": "ba04cdc5b4134a58bdd652d17d36d28c456ddff4af4bfb2b30176411faf1d09b"
+  "apeitersen": "91d90f89cd9ec07e811db4015f8f9ba150f219b819e05f011900c6297eb4276f",
+  "ajohannesen": "2ce846287c8eb81087232be68b4ecb10b5d8f869bf6a46ac5c258d06e6cf3df3",
+  "abenavent": "a55006b1de9f4340b7eec3f6cfc49ad9cc2d98b68830aed780ad396609cd83ef",
+  "aklapp": "5e899068b428d188f254d738f3fa9fb7d26ae7a286c5509ef3b69f0f355ebb11",
+  "bkristiansen": "1255df1a3449ce1d7fdb2f8a87a7f5ff4c444efbf60082a0d05e8130897cff91",
+  "chartvig": "44e8a3ddabf56890370e01bc49e00859972edc5a265b30e943abf63c6ea2dfd5",
+  "cclausen": "6eb417723807131b9ae131eddd4a793109406c08d559e2d8f225a71cf9bad93f",
+  "dschmidt": "a645df23cec5bab8233a9ac987979aec015ed8ce2d62521bcb2337951407c5f5",
+  "dskourup": "1655b063d95466e74549b584f9aa87a6613c7d9e302d8759cf5748830041bb43",
+  "fpreis": "36120ee030ca53315e2aeb455d93f2ef99f59a0f7ddf314b8580288ec9115a15",
+  "jrommer": "5156567c5e06d2e75dab3c9e48cf65103e5ba33c568b77c350ead33e323a793e",
+  "jjohansen": "9ba2cde0e1548da5ee9d9f82f8d7989c08456034d32543a355f0cdfa1502e7f2",
+  "jchristensen": "1855ac040ea7d947b179e10fc95dd8ea67bcdd09177e6078d09cade5459773f4",
+  "jkarlsen": "d2741618060689c5d57c570b932765b021a1daac5005e2cdd5c3a36b5f845815",
+  "jlamm": "20294fe442bdd0e3b008134eac502d2d8915f78d1c945e134761ba561576426e",
+  "mbmikkelsen": "8521d7a185b6810d085f63040829d6c28ea09aec369358097bb970275024337a",
+  "nhesdorf": "49e3781b3d7d6cdb68756f1e62ae94c664e6fcbfe70f459ce1fcdc4dbe4205b9",
+  "obarthelemy": "5df5de6c0267b7d4211ec2c4f212305cefa2ff7e66f20bb2655e39ba69c7b057",
+  "pstorm": "b5eee2bb9ac4d4a7a76eb5980cea9cee84fd32cdb507658dcf06733e23ae915a"
 };
 
 // Google Drive folder ID (from your shared folder link)
@@ -467,7 +467,7 @@ async function signIn(){
     }
 
     // Check password against this user's personal hash
-    var entered=await sha256(password);
+    var entered=await sha256(email+password);  // salted: email+password
     if(entered!==PASSWORD_HASHES[prefix]){
       showAuthErr("Incorrect password. Please try again.");
       btn.disabled=false; btn.textContent="Sign in";
