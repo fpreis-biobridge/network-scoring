@@ -497,11 +497,11 @@ function devBypass(){
   S.user={email:"test", contributor:"fpreis"};
   document.getElementById("ob-user").textContent="Test Mode";
   S._allRows=[
-    {unique_id:"t1",contributor:"fpreis","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"Senior","Connected On":"12 Jan 2023"},
-    {unique_id:"t2",contributor:"fpreis","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"Senior","Connected On":"03 Mar 2022"},
-    {unique_id:"t3",contributor:"fpreis","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"",life_science_relevant:"yes",seniority:"Senior","Connected On":"18 Jun 2021"},
-    {unique_id:"t4",contributor:"fpreis","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"Mid","Connected On":"22 Sep 2020"},
-    {unique_id:"t5",contributor:"fpreis","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"Mid","Connected On":"07 Feb 2023"},
+    {unique_id:"t1",contributor:"fpreis","First Name":"Anna","Last Name":"Jensen",Company:"Novo Nordisk",Position:"VP Commercial Europe",target_account:"Novo Nordisk",life_science_relevant:"yes",seniority:"senior","Connected On":"12 Jan 2023"},
+    {unique_id:"t2",contributor:"fpreis","First Name":"Mikkel","Last Name":"Andersen",Company:"Lundbeck",Position:"Director Medical Affairs",target_account:"Lundbeck",life_science_relevant:"yes",seniority:"senior","Connected On":"03 Mar 2022"},
+    {unique_id:"t3",contributor:"fpreis","First Name":"Sofie","Last Name":"Nielsen",Company:"LEO Pharma",Position:"Head of Market Access",target_account:"",life_science_relevant:"yes",seniority:"senior","Connected On":"18 Jun 2021"},
+    {unique_id:"t4",contributor:"fpreis","First Name":"Lars","Last Name":"Christensen",Company:"Ferring Pharmaceuticals",Position:"Senior Manager Clinical Development",target_account:"Ferring",life_science_relevant:"yes",seniority:"mid","Connected On":"22 Sep 2020"},
+    {unique_id:"t5",contributor:"fpreis","First Name":"Maria","Last Name":"Thomsen",Company:"Genmab",Position:"Associate Director Regulatory Affairs",target_account:"",life_science_relevant:"yes",seniority:"mid","Connected On":"07 Feb 2023"},
   ];
   show("s-onboard");
 }
@@ -664,7 +664,12 @@ function parseCSV(txt){
       cur+=line[i];
     }
     vals.push(cur.trim());
-    var o={};hdrs.forEach(function(h,i){o[h]=vals[i]||"";});return o;
+    var o={};hdrs.forEach(function(h,i){o[h]=vals[i]||"";}); 
+    // Normalise metadata fields to lowercase for consistent comparisons
+    ["seniority","life_science_relevant","ai_confidence","is_priority"].forEach(function(f){
+      if(o[f]) o[f]=o[f].trim().toLowerCase();
+    });
+    return o;
   }).filter(function(r){return r.unique_id;});
 }
 
@@ -708,7 +713,7 @@ async function startScoring(){
     // Board members only see Senior contacts — filter out Mid/Junior for them
     var isBoard=BOARD_ALIASES.indexOf(contributor)!==-1;
     if(isBoard){
-      conns=conns.filter(function(c){return c.seniority==="Senior";});
+      conns=conns.filter(function(c){return c.seniority==="senior";});
     }
 
     // Only show unscored contacts
@@ -762,7 +767,7 @@ function buildCard(c){
     '<div class="pdiv"></div>'+
     '<div class="ptags">'+
       (c.is_priority==="yes"?'<span class="ptag tgt">🎯 Priority</span>':'')+
-      (c.seniority==="Senior"?'<span class="ptag snr">⭐ Senior</span>':'')+
+      (c.seniority==="senior"?'<span class="ptag snr">⭐ Senior</span>':'')+
       '<span class="ptag">Connected '+(c["Connected On"]||"—")+'</span>'+
     '</div>'+
     '<div class="sov sov-lt"></div>'+
